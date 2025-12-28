@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+/* Theme customization for Tailwind v4 */
+@theme {
+  /* Colors using HSL format */
+  --color-background: oklch(9.6% 0.016 286);
+  --color-foreground: oklch(98.5% 0 0);
+  --color-card: oklch(9.6% 0.016 286);
+  --color-card-foreground: oklch(98.5% 0 0);
+  --color-popover: oklch(9.6% 0.016 286);
+  --color-popover-foreground: oklch(98.5% 0 0);
+  --color-primary: oklch(62% 0.21 250);
+  --color-primary-foreground: oklch(98.5% 0 0);
+  --color-secondary: oklch(17% 0.01 286);
+  --color-secondary-foreground: oklch(98.5% 0 0);
+  --color-muted: oklch(17% 0.01 286);
+  --color-muted-foreground: oklch(65% 0.02 286);
+  --color-accent: oklch(17% 0.01 286);
+  --color-accent-foreground: oklch(98.5% 0 0);
+  --color-destructive: oklch(45% 0.18 27);
+  --color-destructive-foreground: oklch(98.5% 0 0);
+  --color-border: oklch(20% 0.01 286);
+  --color-input: oklch(20% 0.01 286);
+  --color-ring: oklch(62% 0.21 250);
+
+  /* Rainbow colors */
+  --color-rainbow-1: oklch(65% 0.2 250);
+  --color-rainbow-2: oklch(65% 0.2 300);
+  --color-rainbow-3: oklch(65% 0.2 200);
+  --color-rainbow-4: oklch(65% 0.2 220);
+  --color-rainbow-5: oklch(65% 0.2 160);
+
+  /* Radius */
+  --radius: 0.5rem;
+
+  /* Animations */
+  --animate-rainbow: rainbow 2s infinite linear;
+
+  @keyframes rainbow {
+    0% { background-position: 0%; }
+    100% { background-position: 200%; }
+  }
+}
+
+/* Root variables for HSL colors (used by some components) */
+:root {
+  --color-1: 210 100% 63%;
+  --color-2: 270 100% 63%;
+  --color-3: 180 100% 63%;
+  --color-4: 195 100% 63%;
+  --color-5: 150 100% 63%;
+
+  /* Tailwind color variables for moving border */
+  --cyan-500: #06b6d4;
+  --blue-500: #3b82f6;
+  --indigo-500: #6366f1;
+  --sky-500: #0ea5e9;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  /* Gradient text utility */
+  .gradient-text {
+    @apply bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-400 bg-clip-text text-transparent;
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600
+           text-white font-semibold rounded-full
+           hover:from-cyan-600 hover:to-blue-700
+           transform hover:scale-105 transition-all duration-300
+           shadow-lg hover:shadow-cyan-500/25;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 border border-cyan-500/50 text-cyan-400
+           font-semibold rounded-full hover:bg-cyan-500/10
+           transition-all duration-300;
+  }
+
+  .section-card {
+    @apply bg-card/50 backdrop-blur-sm border border-border
+           rounded-2xl p-6 hover:border-primary/50
+           transition-all duration-300;
+  }
+}
