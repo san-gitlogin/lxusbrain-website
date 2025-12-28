@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, Link } from 'react-router-dom'
 import { Mail, Lock, User, Eye, EyeOff, ArrowLeft, Loader2, Check } from 'lucide-react'
@@ -7,7 +7,14 @@ import { TermiVoxedLogo } from '@/components/logos'
 
 export function RegisterPage() {
   const navigate = useNavigate()
-  const { signInWithGoogle, signInWithMicrosoft, signUpWithEmail, error, loading, clearError } = useAuth()
+  const { user, signInWithGoogle, signInWithMicrosoft, signUpWithEmail, error, loading, clearError } = useAuth()
+
+  // Redirect to dashboard after successful registration
+  useEffect(() => {
+    if (user && !loading) {
+      navigate('/termivoxed/dashboard')
+    }
+  }, [user, loading, navigate])
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')

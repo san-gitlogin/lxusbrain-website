@@ -1,13 +1,22 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, ArrowLeft, Loader2 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { TermiVoxedLogo } from '@/components/logos'
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const { signInWithGoogle, signInWithMicrosoft, signInWithEmail, error, loading, clearError } = useAuth()
+  const [searchParams] = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/termivoxed/dashboard'
+  const { user, signInWithGoogle, signInWithMicrosoft, signInWithEmail, error, loading, clearError } = useAuth()
+
+  // Redirect if already logged in or after successful login
+  useEffect(() => {
+    if (user && !loading) {
+      navigate(redirect)
+    }
+  }, [user, loading, navigate, redirect])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
