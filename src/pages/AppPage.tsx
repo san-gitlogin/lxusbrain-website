@@ -1,21 +1,12 @@
-import { useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Link, useNavigate } from 'react-router-dom'
-import { Rocket, ArrowLeft, Sparkles, Loader2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Rocket, ArrowLeft, Sparkles, Loader2, User } from 'lucide-react'
 
 import { LxusBrainLogo, LxusBrainTitle, TermiVoxedLogo } from '@/components/logos'
 import { useAuth } from '@/lib/auth-context'
 
 export function AppPage() {
-  const navigate = useNavigate()
   const { user, loading, signInWithGoogle, signInWithMicrosoft, error } = useAuth()
-
-  // Redirect to dashboard if already logged in
-  useEffect(() => {
-    if (!loading && user) {
-      navigate('/termivoxed/dashboard')
-    }
-  }, [user, loading, navigate])
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -33,10 +24,30 @@ export function AppPage() {
                 <TermiVoxedLogo width={45} className="sm:w-[55px]" />
               </Link>
             </div>
-            <Link to="/termivoxed" className="text-muted-foreground hover:text-foreground transition flex items-center gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Link>
+            <div className="flex items-center gap-3">
+              {user ? (
+                <Link to="/termivoxed/dashboard" className="flex items-center">
+                  {user.photoURL ? (
+                    <img
+                      src={user.photoURL}
+                      alt={user.displayName || 'User'}
+                      className="w-8 h-8 rounded-full border border-cyan-500/30"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                      <span className="text-xs font-bold text-white">
+                        {(user.displayName || user.email || 'U')[0].toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </Link>
+              ) : (
+                <Link to="/termivoxed" className="text-muted-foreground hover:text-foreground transition flex items-center gap-2">
+                  <ArrowLeft className="w-4 h-4" />
+                  Back
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </nav>

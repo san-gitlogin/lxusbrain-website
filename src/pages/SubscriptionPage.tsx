@@ -4,86 +4,58 @@ import { useNavigate, Link } from 'react-router-dom'
 import {
   ArrowLeft,
   CreditCard,
-  Check,
-  Zap,
-  Crown,
-  Sparkles,
-  ExternalLink,
-  AlertCircle,
-  Loader2
+  BadgeCheck,
+  ArrowRight,
+  ExternalLink
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { TermiVoxedLogo, LxusBrainLogo } from '@/components/logos'
 import { BeamsBackground } from '@/components/ui/beams-background'
+import { GlowingEffect } from '@/components/ui/glowing-effect'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 const plans = [
   {
     id: 'free',
     name: 'Free Trial',
-    price: 0,
-    period: 'forever',
-    features: [
-      '5 exports total',
-      'Basic AI voices',
-      'Watermarked exports',
-      'Email support',
-      '1 device'
-    ],
-    icon: Sparkles,
-    gradient: 'from-gray-500 to-gray-600'
+    price: { monthly: 'Free', yearly: 'Free' },
+    description: 'Try before you commit',
+    features: ['5 video exports', 'Basic voices', 'Watermark included', 'Email support'],
+    cta: 'Current Plan'
   },
   {
     id: 'individual',
     name: 'Individual',
-    price: 499,
-    period: 'month',
-    features: [
-      '200 exports/month',
-      'Premium AI voices',
-      'No watermark',
-      'Priority support',
-      '2 devices'
-    ],
-    icon: Zap,
-    gradient: 'from-cyan-500 to-blue-600',
+    price: { monthly: 499, yearly: 399 },
+    description: 'For creators & freelancers',
+    features: ['200 exports/month', 'Premium voices', 'No watermark', 'Priority support', '2 devices'],
+    cta: 'Upgrade',
     popular: true
   },
   {
     id: 'pro',
     name: 'Pro',
-    price: 999,
-    period: 'month',
-    features: [
-      '500 exports/month',
-      'Voice cloning',
-      'API access',
-      '24/7 support',
-      '5 devices'
-    ],
-    icon: Crown,
-    gradient: 'from-violet-500 to-purple-600'
+    price: { monthly: 999, yearly: 799 },
+    description: 'For professionals',
+    features: ['500 exports/month', 'Voice cloning', 'API access', '24/7 support', '5 devices'],
+    cta: 'Upgrade'
   },
   {
     id: 'enterprise',
     name: 'Enterprise',
-    price: null,
-    period: 'custom',
-    features: [
-      '2000+ exports/month',
-      'Custom branding',
-      'Dedicated support',
-      'SLA guarantee',
-      'Unlimited devices'
-    ],
-    icon: Crown,
-    gradient: 'from-amber-500 to-orange-600'
+    price: { monthly: 'Custom', yearly: 'Custom' },
+    description: 'For teams & organizations',
+    features: ['2000+ exports/month', 'Custom branding', 'Dedicated support', 'SLA guarantee', 'Unlimited devices'],
+    cta: 'Contact Sales',
+    highlighted: true
   }
 ]
 
 export function SubscriptionPage() {
   const navigate = useNavigate()
   const { user, profile, loading } = useAuth()
-  const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null)
+  const [frequency, setFrequency] = useState<'monthly' | 'yearly'>('monthly')
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
 
@@ -94,19 +66,12 @@ export function SubscriptionPage() {
   }, [user, loading, navigate])
 
   const handleUpgrade = (planId: string) => {
+    if (planId === 'enterprise') {
+      window.location.href = 'mailto:lxusbrain@gmail.com?subject=Enterprise Plan Inquiry'
+      return
+    }
     setSelectedPlan(planId)
     setShowUpgradeModal(true)
-  }
-
-  const confirmUpgrade = async () => {
-    if (!selectedPlan) return
-    setUpgradeLoading(selectedPlan)
-    // Simulate API call - In production, this would integrate with Razorpay
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    setUpgradeLoading(null)
-    setShowUpgradeModal(false)
-    // Show success message or redirect
-    alert('Thank you for your interest! Payment integration coming soon. Please contact lxusbrain@gmail.com for manual subscription.')
   }
 
   if (loading) {
@@ -148,24 +113,22 @@ export function SubscriptionPage() {
             className="bg-card border border-border rounded-2xl p-6 max-w-md w-full"
           >
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-lg bg-cyan-500/10">
-                <CreditCard className="w-5 h-5 text-cyan-400" />
-              </div>
+              <CreditCard className="w-5 h-5 text-cyan-400" />
               <h3 className="text-lg font-semibold text-foreground">Upgrade to {plans.find(p => p.id === selectedPlan)?.name}</h3>
             </div>
             <p className="text-muted-foreground mb-6">
-              You're about to upgrade your plan. Payment integration via Razorpay is coming soon. For now, please contact us for manual subscription.
+              Payment integration via Razorpay is coming soon. For now, please contact us for subscription.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowUpgradeModal(false)}
-                className="flex-1 py-2 rounded-lg bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.08] text-foreground text-sm transition-all"
+                className="flex-1 py-2.5 rounded-lg bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.08] text-foreground text-sm transition-all"
               >
                 Cancel
               </button>
               <a
                 href="mailto:lxusbrain@gmail.com?subject=Subscription Upgrade Request"
-                className="flex-1 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium text-center transition-all"
+                className="flex-1 py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium text-center transition-all"
               >
                 Contact Us
               </a>
@@ -184,191 +147,235 @@ export function SubscriptionPage() {
                 className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span className="text-sm">Dashboard</span>
+                <span className="text-sm">Back</span>
               </button>
             </div>
             <Link to="/termivoxed" className="flex items-center gap-3">
               <TermiVoxedLogo width={40} height={34} />
+            </Link>
+            {/* User Avatar */}
+            <Link to="/termivoxed/dashboard" className="flex items-center">
+              {user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt={user.displayName || 'User'}
+                  className="w-8 h-8 rounded-full border border-cyan-500/30"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">
+                    {(user.displayName || user.email || 'U')[0].toUpperCase()}
+                  </span>
+                </div>
+              )}
             </Link>
           </div>
         </div>
       </nav>
 
       <main className="pt-24 pb-16 px-4 relative z-10">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {/* Header */}
           <motion.div
             custom={0}
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            className="text-center mb-12"
+            className="text-center mb-8"
           >
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">Subscription</span> & Billing
             </h1>
             <p className="text-muted-foreground">Manage your plan and payment details</p>
           </motion.div>
 
-          {/* Current plan */}
+          {/* Frequency Toggle */}
           <motion.div
             custom={1}
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            className="mb-12 p-6 rounded-2xl bg-white/[0.02] border border-white/[0.08]"
+            className="flex justify-center mb-8"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <CreditCard className="w-5 h-5 text-cyan-400" />
-              <h2 className="text-lg font-semibold text-foreground">Current Plan</h2>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <p className="text-xl font-bold text-foreground capitalize">{currentPlan} Plan</p>
-                <p className="text-muted-foreground text-sm">
-                  {currentPlan === 'free' ? 'Free forever' : 'Billed monthly'}
-                </p>
-              </div>
-              {currentPlan !== 'free' && (
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-sm">Active</span>
-                </div>
-              )}
+            <div className="flex rounded-full bg-muted p-1">
+              <button
+                onClick={() => setFrequency('monthly')}
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-medium transition-all",
+                  frequency === 'monthly'
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setFrequency('yearly')}
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2",
+                  frequency === 'yearly'
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Yearly
+                <span className="text-xs px-1.5 py-0.5 rounded bg-green-500/20 text-green-400">-20%</span>
+              </button>
             </div>
           </motion.div>
 
-          {/* Plans */}
+          {/* Plans Grid - Same style as TermiVoxed */}
           <motion.div
             custom={2}
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            className="mb-12"
+            className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-12"
           >
-            <h2 className="text-lg font-semibold text-foreground mb-6 text-center">Available Plans</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {plans.map((plan) => {
-                const Icon = plan.icon
-                const isCurrent = currentPlan === plan.id
-                return (
+            {plans.map((plan) => {
+              const price = plan.price[frequency]
+              const isCurrent = currentPlan === plan.id
+              const isHighlighted = plan.highlighted
+              const isPopular = plan.popular
+
+              return (
+                <div key={plan.id} className="relative rounded-xl h-full">
+                  <GlowingEffect
+                    variant="cyan"
+                    blur={0}
+                    borderWidth={1}
+                    spread={15}
+                    glow={true}
+                    disabled={false}
+                    proximity={64}
+                    inactiveZone={0.01}
+                  />
                   <div
-                    key={plan.id}
-                    className={`relative p-5 rounded-2xl border transition-all ${
-                      isCurrent
-                        ? 'bg-cyan-500/10 border-cyan-500/30'
-                        : 'bg-white/[0.02] border-white/[0.08] hover:border-white/20'
-                    }`}
+                    className={cn(
+                      "relative flex flex-col gap-5 md:gap-6 overflow-hidden p-4 md:p-6 h-full rounded-xl border",
+                      isHighlighted
+                        ? "bg-gradient-to-br from-cyan-950 via-slate-900 to-blue-950 border-cyan-500/30"
+                        : isCurrent
+                        ? "bg-cyan-500/5 border-cyan-500/30"
+                        : "bg-background border-white/10"
+                    )}
                   >
-                    {plan.popular && !isCurrent && (
-                      <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-medium">
-                        Popular
-                      </span>
+                    {isHighlighted && (
+                      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,200,200,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,200,200,0.1)_1px,transparent_1px)] bg-[size:45px_45px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
                     )}
-                    {isCurrent && (
-                      <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-green-500 text-white text-xs font-medium">
-                        Current
-                      </span>
+                    {isPopular && (
+                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.1),rgba(255,255,255,0))]" />
                     )}
-                    <div className={`inline-block p-2 rounded-lg bg-gradient-to-r ${plan.gradient} mb-4`}>
-                      <Icon className="w-5 h-5 text-white" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-foreground mb-1">{plan.name}</h3>
-                    <div className="mb-4">
-                      {plan.price !== null ? (
+
+                    <h2 className="flex items-center gap-2 md:gap-3 text-lg md:text-xl font-medium capitalize relative z-10">
+                      {plan.name}
+                      {isPopular && !isCurrent && (
+                        <Badge variant="secondary" className="text-xs">Popular</Badge>
+                      )}
+                      {isCurrent && (
+                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">Current</Badge>
+                      )}
+                    </h2>
+
+                    <div className="relative h-10 md:h-12 z-10">
+                      {typeof price === 'number' ? (
                         <>
-                          <span className="text-2xl font-bold text-foreground">&#8377;{plan.price}</span>
-                          <span className="text-muted-foreground text-sm">/{plan.period}</span>
+                          <span className="text-3xl md:text-4xl font-medium">₹{price}</span>
+                          <p className={cn(
+                            "-mt-1 text-xs",
+                            isHighlighted ? "text-cyan-300/60" : "text-muted-foreground"
+                          )}>
+                            Per month
+                          </p>
                         </>
                       ) : (
-                        <span className="text-lg font-medium text-foreground">Custom pricing</span>
+                        <span className="text-3xl md:text-4xl font-medium">{price}</span>
                       )}
                     </div>
-                    <ul className="space-y-2 mb-6">
-                      {plan.features.map((feature, i) => (
-                        <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
+
+                    <div className="flex-1 space-y-2 relative z-10">
+                      <h3 className="text-sm font-medium">{plan.description}</h3>
+                      <ul className="space-y-2">
+                        {plan.features.map((feature, index) => (
+                          <li
+                            key={index}
+                            className={cn(
+                              "flex items-center gap-2 text-sm font-medium",
+                              isHighlighted ? "text-cyan-100/80" : "text-muted-foreground"
+                            )}
+                          >
+                            <BadgeCheck className="h-4 w-4 flex-shrink-0" />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
                     {isCurrent ? (
                       <button
                         disabled
-                        className="w-full py-2 rounded-lg bg-white/[0.05] border border-white/[0.08] text-muted-foreground text-sm cursor-not-allowed"
+                        className="w-full py-2.5 rounded-lg bg-white/[0.05] border border-white/[0.08] text-muted-foreground text-sm cursor-not-allowed relative z-10"
                       >
                         Current Plan
                       </button>
-                    ) : plan.id === 'enterprise' ? (
-                      <a
-                        href="mailto:lxusbrain@gmail.com?subject=Enterprise Plan Inquiry"
-                        className="block w-full py-2 rounded-lg bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.08] text-foreground text-sm text-center transition-all"
-                      >
-                        Contact Sales
-                      </a>
                     ) : (
                       <button
                         onClick={() => handleUpgrade(plan.id)}
-                        disabled={upgradeLoading === plan.id}
-                        className="w-full py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 relative z-10"
                       >
-                        {upgradeLoading === plan.id ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Processing...
-                          </>
-                        ) : (
-                          currentPlan === 'free' ? 'Upgrade' : 'Switch'
-                        )}
+                        {plan.cta}
+                        <ArrowRight className="w-4 h-4" />
                       </button>
                     )}
                   </div>
-                )
-              })}
-            </div>
+                </div>
+              )
+            })}
           </motion.div>
 
-          {/* Billing history */}
-          <motion.div
-            custom={3}
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-          >
-            <h2 className="text-lg font-semibold text-foreground mb-4">Billing History</h2>
-            <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.08] text-center">
-              <p className="text-muted-foreground mb-4">No billing history yet</p>
-              <p className="text-sm text-muted-foreground/60">
-                Your invoices and payment receipts will appear here
-              </p>
-            </div>
-          </motion.div>
+          {/* Billing & Payment Section */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Billing history */}
+            <motion.div
+              custom={3}
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.08]"
+            >
+              <h2 className="text-lg font-semibold text-foreground mb-4">Billing History</h2>
+              <div className="text-center py-6">
+                <p className="text-muted-foreground mb-2">No billing history yet</p>
+                <p className="text-sm text-muted-foreground/60">
+                  Your invoices will appear here
+                </p>
+              </div>
+            </motion.div>
 
-          {/* Payment info */}
-          <motion.div
-            custom={4}
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            className="mt-8 p-6 rounded-2xl bg-white/[0.02] border border-white/[0.08]"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-foreground">Payment Method</h2>
-              <span className="text-sm text-muted-foreground">Powered by Razorpay</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="p-4 rounded-xl bg-white/[0.02] border border-dashed border-white/[0.15] flex-1 text-center">
+            {/* Payment info */}
+            <motion.div
+              custom={4}
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.08]"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-foreground">Payment Method</h2>
+                <span className="text-xs text-muted-foreground">Razorpay</span>
+              </div>
+              <div className="text-center py-4">
                 <CreditCard className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground text-sm">No payment method added</p>
+                <p className="text-muted-foreground text-sm mb-3">No payment method</p>
                 <a
                   href="mailto:lxusbrain@gmail.com?subject=Add Payment Method"
-                  className="mt-3 inline-block px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium transition-all"
+                  className="inline-block px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium transition-all"
                 >
-                  Add Payment Method
+                  Contact to Add
                 </a>
-                <p className="text-xs text-muted-foreground/60 mt-2">Razorpay integration coming soon</p>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
 
           {/* Help */}
           <motion.div
@@ -379,7 +386,7 @@ export function SubscriptionPage() {
             className="mt-8 text-center"
           >
             <p className="text-muted-foreground text-sm">
-              Have questions about billing?{' '}
+              Questions?{' '}
               <a href="mailto:lxusbrain@gmail.com" className="text-cyan-400 hover:text-cyan-300 inline-flex items-center gap-1">
                 Contact support <ExternalLink className="w-3 h-3" />
               </a>

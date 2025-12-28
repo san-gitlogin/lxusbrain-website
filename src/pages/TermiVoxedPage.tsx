@@ -14,7 +14,6 @@ import {
   Zap,
   Shield,
   Clock,
-  User,
   LogOut
 } from 'lucide-react'
 
@@ -183,15 +182,21 @@ export function TermiVoxedPage() {
               <a href="#pricing" className="text-muted-foreground hover:text-foreground transition">Pricing</a>
               <a href="#contact" className="text-muted-foreground hover:text-foreground transition">Contact</a>
               {!loading && user ? (
-                <div className="flex items-center gap-3">
-                  <Link
-                    to="/termivoxed/dashboard"
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] transition text-sm text-foreground"
-                  >
-                    <User className="w-4 h-4" />
-                    Dashboard
-                  </Link>
-                </div>
+                <Link to="/termivoxed/dashboard" className="flex items-center">
+                  {user.photoURL ? (
+                    <img
+                      src={user.photoURL}
+                      alt={user.displayName || 'User'}
+                      className="w-9 h-9 rounded-full border-2 border-cyan-500/30 hover:border-cyan-500/50 transition-colors"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center hover:shadow-lg hover:shadow-cyan-500/20 transition-all">
+                      <span className="text-sm font-bold text-white">
+                        {(user.displayName || user.email || 'U')[0].toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </Link>
               ) : (
                 <div className="flex items-center gap-3">
                   <Link to="/termivoxed/login" className="text-muted-foreground hover:text-foreground transition text-sm">

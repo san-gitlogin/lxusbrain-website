@@ -11,7 +11,6 @@ import {
   LogOut,
   Loader2,
   CheckCircle,
-  Camera,
   AlertTriangle,
   X
 } from 'lucide-react'
@@ -211,30 +210,22 @@ export function SettingsPage() {
 
             {/* Avatar */}
             <div className="flex items-center gap-4 mb-6">
-              <div className="relative">
-                {user.photoURL ? (
-                  <img
-                    src={user.photoURL}
-                    alt={user.displayName || 'User'}
-                    className="w-20 h-20 rounded-full border-2 border-cyan-500/30"
-                  />
-                ) : (
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-                    <span className="text-3xl font-bold text-white">
-                      {(displayName || user.email || 'U')[0].toUpperCase()}
-                    </span>
-                  </div>
-                )}
-                <button
-                  className="absolute bottom-0 right-0 p-1.5 rounded-full bg-card border border-border hover:bg-white/10 transition-colors group"
-                  title="Photo synced from login provider"
-                >
-                  <Camera className="w-4 h-4 text-muted-foreground group-hover:text-cyan-400 transition-colors" />
-                </button>
-              </div>
+              {user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt={user.displayName || 'User'}
+                  className="w-16 h-16 rounded-full border-2 border-cyan-500/30"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                  <span className="text-2xl font-bold text-white">
+                    {(displayName || user.email || 'U')[0].toUpperCase()}
+                  </span>
+                </div>
+              )}
               <div>
-                <p className="text-sm text-muted-foreground">Profile photo</p>
-                <p className="text-xs text-muted-foreground/60">Synced from your login provider</p>
+                <p className="font-medium text-foreground">{displayName || user.email}</p>
+                <p className="text-xs text-muted-foreground">Photo synced from {user.providerData?.[0]?.providerId === 'google.com' ? 'Google' : user.providerData?.[0]?.providerId === 'microsoft.com' ? 'Microsoft' : 'login provider'}</p>
               </div>
             </div>
 

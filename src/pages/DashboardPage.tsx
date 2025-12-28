@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, Link } from 'react-router-dom'
 import {
-  User,
   Settings,
   CreditCard,
   Download,
@@ -10,12 +9,7 @@ import {
   Sparkles,
   Zap,
   Crown,
-  ChevronRight,
-  ExternalLink,
-  Clock,
-  CheckCircle2,
-  Play,
-  Rocket
+  ChevronRight
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { TermiVoxedLogo, LxusBrainLogo } from '@/components/logos'
@@ -97,6 +91,20 @@ export function DashboardPage() {
                 <LogOut className="w-4 h-4" />
                 <span className="hidden sm:inline">Sign out</span>
               </button>
+              {/* User Avatar */}
+              {user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt={user.displayName || 'User'}
+                  className="w-8 h-8 rounded-full border border-cyan-500/30"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">
+                    {(user.displayName || user.email || 'U')[0].toUpperCase()}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -212,7 +220,7 @@ export function DashboardPage() {
             </Link>
           </motion.div>
 
-          {/* App status */}
+          {/* App Download */}
           <motion.div
             custom={3}
             variants={fadeUp}
@@ -220,55 +228,23 @@ export function DashboardPage() {
             animate="visible"
             className="mb-8"
           >
-            <h2 className="text-lg font-semibold text-foreground mb-4">TermiVoxed App</h2>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {/* Web App */}
-              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.08]">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-cyan-500/10">
-                    <ExternalLink className="w-5 h-5 text-cyan-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-foreground">Web App</h3>
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <Clock className="w-3 h-3 text-amber-400" />
-                      <span className="text-amber-400">Coming Soon</span>
-                    </div>
-                  </div>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Get TermiVoxed</h2>
+            <div className="p-6 rounded-xl bg-white/[0.02] border border-white/[0.08]">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30">
+                  <Download className="w-8 h-8 text-cyan-400" />
                 </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Access TermiVoxed directly in your browser. No installation required.
-                </p>
-                <button
-                  disabled
-                  className="w-full py-2 rounded-lg bg-white/[0.05] border border-white/[0.08] text-muted-foreground text-sm cursor-not-allowed"
-                >
-                  Coming Soon
-                </button>
-              </div>
-
-              {/* Desktop App */}
-              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.08]">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-violet-500/10">
-                    <Download className="w-5 h-5 text-violet-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-foreground">Desktop App</h3>
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <CheckCircle2 className="w-3 h-3 text-green-400" />
-                      <span className="text-green-400">Available</span>
-                    </div>
-                  </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-foreground mb-1">Desktop Application</h3>
+                  <p className="text-sm text-muted-foreground">
+                    TermiVoxed runs as a desktop application on Windows and macOS. Download to get started with AI voice-over and dubbing.
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Download the desktop app for Windows or macOS for full functionality.
-                </p>
                 <Link
                   to="/termivoxed/download"
-                  className="block w-full py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm text-center font-medium transition-all"
+                  className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium transition-all whitespace-nowrap"
                 >
-                  Download Now
+                  Download App
                 </Link>
               </div>
             </div>
