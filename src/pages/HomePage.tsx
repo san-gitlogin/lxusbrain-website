@@ -245,7 +245,7 @@ export function HomePage() {
             <div className="flex items-center gap-2 sm:gap-3">
               <LxusBrainLogo size={20} className="sm:w-6 sm:h-6" />
               <span className="text-muted-foreground text-xs sm:text-sm">
-                © {new Date().getFullYear()} LxusBrain Technologies
+                © {new Date().getFullYear()} LxusBrain
               </span>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm">

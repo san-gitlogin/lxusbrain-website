@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, Link } from 'react-router-dom'
 import {
@@ -12,11 +11,14 @@ import {
   LogOut,
   Loader2,
   CheckCircle,
-  Camera
+  Camera,
+  AlertTriangle,
+  X
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { updateUserProfile } from '@/lib/firebase'
 import { TermiVoxedLogo, LxusBrainLogo } from '@/components/logos'
+import { BeamsBackground } from '@/components/ui/beams-background'
 
 export function SettingsPage() {
   const navigate = useNavigate()
@@ -25,6 +27,8 @@ export function SettingsPage() {
   const [displayName, setDisplayName] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
 
   useEffect(() => {
     if (!loading && !user) {
@@ -82,10 +86,79 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.03] via-transparent to-indigo-500/[0.03]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(0,200,200,0.08),transparent)]" />
+    <BeamsBackground intensity="subtle" className="min-h-screen bg-background">
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+        >
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-card border border-red-500/30 rounded-2xl p-6 max-w-md w-full"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-red-500/10">
+                  <AlertTriangle className="w-5 h-5 text-red-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground">Delete Account</h3>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false)
+                  setDeleteConfirmText('')
+                }}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-muted-foreground mb-4">
+              This action cannot be undone. All your data, including projects and settings, will be permanently deleted.
+            </p>
+            <p className="text-sm text-foreground mb-2">Type <strong className="text-red-400">DELETE</strong> to confirm:</p>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all mb-4"
+              placeholder="Type DELETE"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false)
+                  setDeleteConfirmText('')
+                }}
+                className="flex-1 py-2 rounded-lg bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.08] text-foreground text-sm transition-all"
+              >
+                Cancel
+              </button>
+              <a
+                href={deleteConfirmText === 'DELETE' ? 'mailto:lxusbrain@gmail.com?subject=Account Deletion Request&body=Please delete my account associated with this email.' : undefined}
+                onClick={(e) => {
+                  if (deleteConfirmText !== 'DELETE') {
+                    e.preventDefault()
+                  }
+                }}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium text-center transition-all ${
+                  deleteConfirmText === 'DELETE'
+                    ? 'bg-red-500 hover:bg-red-600 text-white cursor-pointer'
+                    : 'bg-red-500/30 text-red-400/50 cursor-not-allowed'
+                }`}
+              >
+                Request Deletion
+              </a>
+            </div>
+            <p className="text-xs text-muted-foreground/60 mt-3 text-center">
+              For security, deletion requests are processed manually within 48 hours.
+            </p>
+          </motion.div>
+        </motion.div>
+      )}
 
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -117,7 +190,9 @@ export function SettingsPage() {
             animate="visible"
             className="mb-8"
           >
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Account Settings</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+              Account <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">Settings</span>
+            </h1>
             <p className="text-muted-foreground">Manage your account preferences</p>
           </motion.div>
 
@@ -150,8 +225,11 @@ export function SettingsPage() {
                     </span>
                   </div>
                 )}
-                <button className="absolute bottom-0 right-0 p-1.5 rounded-full bg-card border border-border hover:bg-white/10 transition-colors">
-                  <Camera className="w-4 h-4 text-muted-foreground" />
+                <button
+                  className="absolute bottom-0 right-0 p-1.5 rounded-full bg-card border border-border hover:bg-white/10 transition-colors group"
+                  title="Photo synced from login provider"
+                >
+                  <Camera className="w-4 h-4 text-muted-foreground group-hover:text-cyan-400 transition-colors" />
                 </button>
               </div>
               <div>
@@ -321,7 +399,10 @@ export function SettingsPage() {
                 <LogOut className="w-4 h-4" />
                 Sign out of all devices
               </button>
-              <button className="w-full px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 transition-all text-red-400">
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="w-full px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 transition-all text-red-400"
+              >
                 Delete Account
               </button>
             </div>
@@ -335,7 +416,7 @@ export function SettingsPage() {
           <div className="flex items-center gap-2">
             <LxusBrainLogo size={16} />
             <span className="text-muted-foreground text-xs">
-              &copy; {new Date().getFullYear()} LxusBrain Technologies
+              &copy; {new Date().getFullYear()} LxusBrain
             </span>
           </div>
           <div className="flex items-center gap-4 text-xs">
@@ -345,6 +426,6 @@ export function SettingsPage() {
           </div>
         </div>
       </footer>
-    </div>
+    </BeamsBackground>
   )
 }

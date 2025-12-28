@@ -18,6 +18,7 @@ import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { SubscriptionPage } from '@/pages/SubscriptionPage'
+import { DemoPage } from '@/pages/DemoPage'
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="/termivoxed/app" element={<AppPage />} />
           <Route path="/termivoxed/download" element={<DownloadPage />} />
           <Route path="/termivoxed/get-started" element={<GetStartedPage />} />
+          <Route path="/termivoxed/demo" element={<DemoPage />} />
           <Route path="/legal/:type" element={<LegalPage />} />
 
           {/* Auth pages */}

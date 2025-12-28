@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, Link } from 'react-router-dom'
 import {
@@ -8,10 +8,13 @@ import {
   Zap,
   Crown,
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  AlertCircle,
+  Loader2
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { TermiVoxedLogo, LxusBrainLogo } from '@/components/logos'
+import { BeamsBackground } from '@/components/ui/beams-background'
 
 const plans = [
   {
@@ -80,12 +83,31 @@ const plans = [
 export function SubscriptionPage() {
   const navigate = useNavigate()
   const { user, profile, loading } = useAuth()
+  const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
 
   useEffect(() => {
     if (!loading && !user) {
       navigate('/termivoxed/login')
     }
   }, [user, loading, navigate])
+
+  const handleUpgrade = (planId: string) => {
+    setSelectedPlan(planId)
+    setShowUpgradeModal(true)
+  }
+
+  const confirmUpgrade = async () => {
+    if (!selectedPlan) return
+    setUpgradeLoading(selectedPlan)
+    // Simulate API call - In production, this would integrate with Razorpay
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    setUpgradeLoading(null)
+    setShowUpgradeModal(false)
+    // Show success message or redirect
+    alert('Thank you for your interest! Payment integration coming soon. Please contact lxusbrain@gmail.com for manual subscription.')
+  }
 
   if (loading) {
     return (
@@ -112,10 +134,45 @@ export function SubscriptionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.03] via-transparent to-indigo-500/[0.03]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(0,200,200,0.08),transparent)]" />
+    <BeamsBackground intensity="subtle" className="min-h-screen bg-background">
+      {/* Upgrade Confirmation Modal */}
+      {showUpgradeModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+        >
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-card border border-border rounded-2xl p-6 max-w-md w-full"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-cyan-500/10">
+                <CreditCard className="w-5 h-5 text-cyan-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">Upgrade to {plans.find(p => p.id === selectedPlan)?.name}</h3>
+            </div>
+            <p className="text-muted-foreground mb-6">
+              You're about to upgrade your plan. Payment integration via Razorpay is coming soon. For now, please contact us for manual subscription.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowUpgradeModal(false)}
+                className="flex-1 py-2 rounded-lg bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.08] text-foreground text-sm transition-all"
+              >
+                Cancel
+              </button>
+              <a
+                href="mailto:lxusbrain@gmail.com?subject=Subscription Upgrade Request"
+                className="flex-1 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium text-center transition-all"
+              >
+                Contact Us
+              </a>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
 
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -147,7 +204,9 @@ export function SubscriptionPage() {
             animate="visible"
             className="text-center mb-12"
           >
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Subscription & Billing</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">Subscription</span> & Billing
+            </h1>
             <p className="text-muted-foreground">Manage your plan and payment details</p>
           </motion.div>
 
@@ -247,8 +306,19 @@ export function SubscriptionPage() {
                         Contact Sales
                       </a>
                     ) : (
-                      <button className="w-full py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium transition-all">
-                        {currentPlan === 'free' ? 'Upgrade' : 'Switch'}
+                      <button
+                        onClick={() => handleUpgrade(plan.id)}
+                        disabled={upgradeLoading === plan.id}
+                        className="w-full py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {upgradeLoading === plan.id ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          currentPlan === 'free' ? 'Upgrade' : 'Switch'
+                        )}
                       </button>
                     )}
                   </div>
@@ -289,9 +359,13 @@ export function SubscriptionPage() {
               <div className="p-4 rounded-xl bg-white/[0.02] border border-dashed border-white/[0.15] flex-1 text-center">
                 <CreditCard className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
                 <p className="text-muted-foreground text-sm">No payment method added</p>
-                <button className="mt-3 px-4 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] text-foreground text-sm transition-all">
+                <a
+                  href="mailto:lxusbrain@gmail.com?subject=Add Payment Method"
+                  className="mt-3 inline-block px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium transition-all"
+                >
                   Add Payment Method
-                </button>
+                </a>
+                <p className="text-xs text-muted-foreground/60 mt-2">Razorpay integration coming soon</p>
               </div>
             </div>
           </motion.div>
@@ -320,7 +394,7 @@ export function SubscriptionPage() {
           <div className="flex items-center gap-2">
             <LxusBrainLogo size={16} />
             <span className="text-muted-foreground text-xs">
-              &copy; {new Date().getFullYear()} LxusBrain Technologies
+              &copy; {new Date().getFullYear()} LxusBrain
             </span>
           </div>
           <div className="flex items-center gap-4 text-xs">
@@ -330,6 +404,6 @@ export function SubscriptionPage() {
           </div>
         </div>
       </footer>
-    </div>
+    </BeamsBackground>
   )
 }

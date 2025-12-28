@@ -13,10 +13,13 @@ import {
   ChevronRight,
   ExternalLink,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  Play,
+  Rocket
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { TermiVoxedLogo, LxusBrainLogo } from '@/components/logos'
+import { BeamsBackground } from '@/components/ui/beams-background'
 
 export function DashboardPage() {
   const navigate = useNavigate()
@@ -73,11 +76,7 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.03] via-transparent to-indigo-500/[0.03]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(0,200,200,0.08),transparent)]" />
-
+    <BeamsBackground intensity="subtle" className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -114,7 +113,7 @@ export function DashboardPage() {
             className="mb-8"
           >
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-              Welcome back, {profile?.displayName || user.displayName || 'there'}!
+              Welcome back, <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">{profile?.displayName || user.displayName || 'there'}</span>!
             </h1>
             <p className="text-muted-foreground">Manage your account and subscription</p>
           </motion.div>
@@ -311,7 +310,7 @@ export function DashboardPage() {
           <div className="flex items-center gap-2">
             <LxusBrainLogo size={16} />
             <span className="text-muted-foreground text-xs">
-              &copy; {new Date().getFullYear()} LxusBrain Technologies
+              &copy; {new Date().getFullYear()} LxusBrain
             </span>
           </div>
           <div className="flex items-center gap-4 text-xs">
@@ -321,6 +320,6 @@ export function DashboardPage() {
           </div>
         </div>
       </footer>
-    </div>
+    </BeamsBackground>
   )
 }

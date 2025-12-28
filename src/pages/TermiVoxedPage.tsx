@@ -312,8 +312,8 @@ export function TermiVoxedPage() {
                     <Play className="w-4 h-4 mr-2" />
                     Try TermiVoxed
                   </Link>
-                  <Link to="/termivoxed/download" className="btn-secondary inline-flex items-center justify-center">
-                    Download App
+                  <Link to="/termivoxed/demo" className="btn-secondary inline-flex items-center justify-center">
+                    Watch Demo
                   </Link>
                 </div>
               </div>
@@ -483,8 +483,19 @@ export function TermiVoxedPage() {
               </ul>
             </div>
           </div>
-          <div className="pt-8 border-t border-border text-center text-muted-foreground text-sm">
-            <p>&copy; {new Date().getFullYear()} LxusBrain Technologies. All rights reserved.</p>
+          {/* Powered By Section */}
+          <div className="pt-6 pb-4 border-t border-border">
+            <p className="text-center text-muted-foreground/60 text-xs mb-3">Powered by open source technologies</p>
+            <div className="flex flex-wrap justify-center gap-3 text-xs">
+              <span className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70">FFmpeg</span>
+              <span className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70">Edge-TTS</span>
+              <span className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70">Coqui TTS</span>
+              <span className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70">LangChain</span>
+              <span className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70">Whisper</span>
+            </div>
+          </div>
+          <div className="pt-4 border-t border-border text-center text-muted-foreground text-sm">
+            <p>&copy; {new Date().getFullYear()} LxusBrain. All rights reserved.</p>
           </div>
         </div>
       </footer>
