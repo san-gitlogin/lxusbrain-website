@@ -1,9 +1,8 @@
-"use client"
-
 import type React from "react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion"
-import { Mic, Globe, Sparkles, Video, Zap, Shield, Check, Play, X } from "lucide-react"
+import { Mic, Globe, Sparkles, Video, Zap, Shield, Check, Play } from "lucide-react"
+import { VideoModal } from "@/components/ui/video-player"
 
 interface Feature {
   icon: React.ElementType
@@ -104,13 +103,22 @@ export function FeatureShowcase({ className }: FeatureShowcaseProps) {
     }
   }
 
-  const goNext = () => setActiveIndex((prev) => (prev + 1) % features.length)
-  const goPrev = () => setActiveIndex((prev) => (prev - 1 + features.length) % features.length)
+  const goNext = useCallback(() => {
+    setActiveIndex((prev) => (prev + 1) % features.length)
+  }, [])
+
+  const goPrev = useCallback(() => {
+    setActiveIndex((prev) => (prev - 1 + features.length) % features.length)
+  }, [])
 
   // Auto-advance every 5 seconds
   useEffect(() => {
     if (isPaused || playingVideo) return
-    const timer = setInterval(goNext, 5000)
+
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % features.length)
+    }, 5000)
+
     return () => clearInterval(timer)
   }, [isPaused, playingVideo])
 
@@ -515,53 +523,13 @@ export function FeatureShowcase({ className }: FeatureShowcaseProps) {
       </div>
 
       {/* Video Modal */}
-      <AnimatePresence>
-        {playingVideo && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm"
-            onClick={() => setPlayingVideo(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative w-full max-w-4xl mx-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => setPlayingVideo(null)}
-                className="absolute -top-12 right-0 text-white/70 hover:text-white transition-colors"
-              >
-                <X className="w-8 h-8" />
-              </button>
-
-              <div className="relative aspect-video bg-gray-900 rounded-xl overflow-hidden border border-white/10">
-                {playingVideo ? (
-                  <iframe
-                    src={playingVideo}
-                    className="absolute inset-0 w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <p className="text-white/60">Video coming soon</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-4 text-center">
-                <h4 className="text-white text-lg font-medium">{current.title}</h4>
-                <p className="text-white/60 text-sm mt-1">Demo Video</p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <VideoModal
+        isOpen={!!playingVideo}
+        onClose={() => setPlayingVideo(null)}
+        src={playingVideo || ""}
+        poster={current.previewImage}
+        title={`${current.title} - Demo`}
+      />
     </div>
   )
 }

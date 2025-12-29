@@ -12,10 +12,13 @@ import {
   Loader2,
   CheckCircle,
   AlertTriangle,
-  X
+  X,
+  Download,
+  Trash2
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { updateUserProfile } from '@/lib/firebase'
+import { deleteAccount, downloadUserData } from '@/lib/razorpay'
 import { TermiVoxedLogo, LxusBrainLogo } from '@/components/logos'
 import { BeamsBackground } from '@/components/ui/beams-background'
 
@@ -28,6 +31,11 @@ export function SettingsPage() {
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
+  const [isExporting, setIsExporting] = useState(false)
+  const [exportError, setExportError] = useState('')
+  const [exportSuccess, setExportSuccess] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -75,6 +83,44 @@ export function SettingsPage() {
     navigate('/')
   }
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') return
+
+    setIsDeleting(true)
+    setDeleteError('')
+
+    try {
+      const response = await deleteAccount()
+      if (response.success) {
+        // Account deleted, sign out and redirect
+        await logout()
+        navigate('/')
+      } else {
+        setDeleteError(response.error || 'Failed to delete account')
+      }
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'Failed to delete account')
+    }
+
+    setIsDeleting(false)
+  }
+
+  const handleExportData = async () => {
+    setIsExporting(true)
+    setExportError('')
+    setExportSuccess(false)
+
+    try {
+      await downloadUserData()
+      setExportSuccess(true)
+      setTimeout(() => setExportSuccess(false), 3000)
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : 'Failed to export data')
+    }
+
+    setIsExporting(false)
+  }
+
   const fadeUp = {
     hidden: { opacity: 0, y: 20 },
     visible: (i: number) => ({
@@ -109,52 +155,69 @@ export function SettingsPage() {
                 onClick={() => {
                   setShowDeleteModal(false)
                   setDeleteConfirmText('')
+                  setDeleteError('')
                 }}
-                className="text-muted-foreground hover:text-foreground"
+                disabled={isDeleting}
+                className="text-muted-foreground hover:text-foreground disabled:opacity-50"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <p className="text-muted-foreground mb-4">
-              This action cannot be undone. All your data, including projects and settings, will be permanently deleted.
+              This action cannot be undone. All your data will be permanently deleted, including:
             </p>
+            <ul className="text-sm text-muted-foreground mb-4 list-disc list-inside space-y-1">
+              <li>Your profile and settings</li>
+              <li>All projects and exports</li>
+              <li>Payment and subscription history</li>
+              <li>Active subscriptions (will be cancelled)</li>
+            </ul>
             <p className="text-sm text-foreground mb-2">Type <strong className="text-red-400">DELETE</strong> to confirm:</p>
             <input
               type="text"
               value={deleteConfirmText}
               onChange={(e) => setDeleteConfirmText(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all mb-4"
+              disabled={isDeleting}
+              className="w-full px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all mb-4 disabled:opacity-50"
               placeholder="Type DELETE"
             />
+            {deleteError && (
+              <p className="text-sm text-red-400 mb-4">{deleteError}</p>
+            )}
             <div className="flex gap-3">
               <button
                 onClick={() => {
                   setShowDeleteModal(false)
                   setDeleteConfirmText('')
+                  setDeleteError('')
                 }}
-                className="flex-1 py-2 rounded-lg bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.08] text-foreground text-sm transition-all"
+                disabled={isDeleting}
+                className="flex-1 py-2 rounded-lg bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.08] text-foreground text-sm transition-all disabled:opacity-50"
               >
                 Cancel
               </button>
-              <a
-                href={deleteConfirmText === 'DELETE' ? 'mailto:lxusbrain@gmail.com?subject=Account Deletion Request&body=Please delete my account associated with this email.' : undefined}
-                onClick={(e) => {
-                  if (deleteConfirmText !== 'DELETE') {
-                    e.preventDefault()
-                  }
-                }}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium text-center transition-all ${
-                  deleteConfirmText === 'DELETE'
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium text-center transition-all flex items-center justify-center gap-2 ${
+                  deleteConfirmText === 'DELETE' && !isDeleting
                     ? 'bg-red-500 hover:bg-red-600 text-white cursor-pointer'
                     : 'bg-red-500/30 text-red-400/50 cursor-not-allowed'
                 }`}
               >
-                Request Deletion
-              </a>
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Delete Account
+                  </>
+                )}
+              </button>
             </div>
-            <p className="text-xs text-muted-foreground/60 mt-3 text-center">
-              For security, deletion requests are processed manually within 48 hours.
-            </p>
           </motion.div>
         </motion.div>
       )}
@@ -373,9 +436,54 @@ export function SettingsPage() {
             </div>
           </motion.div>
 
-          {/* Danger zone */}
+          {/* Data Privacy section (GDPR/CCPA) */}
           <motion.div
             custom={6}
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            className="mb-6 p-6 rounded-2xl bg-white/[0.02] border border-white/[0.08]"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <Download className="w-5 h-5 text-cyan-400" />
+              <h2 className="text-lg font-semibold text-foreground">Data Privacy</h2>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Under GDPR and CCPA, you have the right to access and download your personal data.
+            </p>
+            <button
+              onClick={handleExportData}
+              disabled={isExporting}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.08] hover:bg-white/[0.04] transition-all text-foreground disabled:opacity-50"
+            >
+              {isExporting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Exporting...
+                </>
+              ) : exportSuccess ? (
+                <>
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  Downloaded!
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  Download My Data
+                </>
+              )}
+            </button>
+            {exportError && (
+              <p className="text-sm text-red-400 mt-2">{exportError}</p>
+            )}
+            <p className="text-xs text-muted-foreground/60 mt-3">
+              Your data will be exported as a JSON file containing your profile, projects, and payment history.
+            </p>
+          </motion.div>
+
+          {/* Danger zone */}
+          <motion.div
+            custom={7}
             variants={fadeUp}
             initial="hidden"
             animate="visible"

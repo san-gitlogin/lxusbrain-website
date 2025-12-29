@@ -33,8 +33,53 @@ function getRazorpay() {
 // Validate config on cold start
 validateConfig();
 
-// CORS configuration
-const corsHandler = require('cors')({ origin: true });
+// CORS configuration - Only allow specific origins
+const allowedOrigins = [
+  'https://lxusbrain.com',
+  'https://www.lxusbrain.com',
+  'https://termivoxed.com',
+  'https://www.termivoxed.com',
+  'https://termivoxed.web.app',
+  'https://termivoxed.firebaseapp.com',
+];
+
+// Add localhost for development
+if (process.env.NODE_ENV !== 'production') {
+  allowedOrigins.push('http://localhost:5173', 'http://localhost:3000');
+}
+
+// Type-safe CORS middleware wrapper
+type CorsCallback = (
+  req: functions.https.Request,
+  res: functions.Response,
+  next: () => void | Promise<void>
+) => void;
+
+const corsHandler: CorsCallback = require('cors')({
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+});
+
+/**
+ * Timing-safe signature comparison to prevent timing attacks
+ */
+function secureCompare(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  const bufA = Buffer.from(a, 'hex');
+  const bufB = Buffer.from(b, 'hex');
+  return crypto.timingSafeEqual(bufA, bufB);
+}
 
 /**
  * Verify Firebase Auth token from request
@@ -163,14 +208,14 @@ export const verifyPayment = functions.https.onRequest((req, res) => {
         return;
       }
 
-      // Verify signature
+      // Verify signature using timing-safe comparison
       const body = razorpay_order_id + '|' + razorpay_payment_id;
       const expectedSignature = crypto
         .createHmac('sha256', razorpayConfig.key_secret)
         .update(body)
         .digest('hex');
 
-      if (expectedSignature !== razorpay_signature) {
+      if (!secureCompare(expectedSignature, razorpay_signature)) {
         console.error('Signature verification failed');
         res.status(400).json({ success: false, error: 'Invalid payment signature' });
         return;
@@ -204,8 +249,12 @@ export const verifyPayment = functions.https.onRequest((req, res) => {
         expiresAt.setMonth(expiresAt.getMonth() + 1);
       }
 
+      // Use batch write for atomic operations to prevent race conditions
+      const batch = db.batch();
+
       // Update user subscription
-      await db.collection('users').doc(decodedToken.uid).update({
+      const userRef = db.collection('users').doc(decodedToken.uid);
+      batch.update(userRef, {
         plan: planId,
         planStatus: 'active',
         razorpay_payment_id: razorpay_payment_id,
@@ -215,14 +264,16 @@ export const verifyPayment = functions.https.onRequest((req, res) => {
       });
 
       // Update order status
-      await db.collection('orders').doc(razorpay_order_id).update({
+      const orderRef = db.collection('orders').doc(razorpay_order_id);
+      batch.update(orderRef, {
         status: 'paid',
         paymentId: razorpay_payment_id,
         paidAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
       // Create payment record
-      await db.collection('users').doc(decodedToken.uid).collection('payments').add({
+      const paymentRef = db.collection('users').doc(decodedToken.uid).collection('payments').doc();
+      batch.set(paymentRef, {
         orderId: razorpay_order_id,
         paymentId: razorpay_payment_id,
         planId: planId,
@@ -232,6 +283,9 @@ export const verifyPayment = functions.https.onRequest((req, res) => {
         status: 'captured',
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
+
+      // Commit all writes atomically
+      await batch.commit();
 
       res.json({
         success: true,
@@ -249,8 +303,9 @@ export const verifyPayment = functions.https.onRequest((req, res) => {
 
 /**
  * Razorpay Webhook Handler
- * 
+ *
  * Handles events like subscription.charged, payment.failed, etc.
+ * Uses rawBody for signature verification and includes replay attack prevention.
  */
 export const razorpayWebhook = functions.https.onRequest(async (req, res) => {
   // Only allow POST
@@ -262,20 +317,29 @@ export const razorpayWebhook = functions.https.onRequest(async (req, res) => {
   try {
     // Verify webhook signature
     const signature = req.headers['x-razorpay-signature'] as string;
-    
+
     if (!signature) {
       console.error('Missing Razorpay signature');
       res.status(400).send('Missing signature');
       return;
     }
 
-    const rawBody = JSON.stringify(req.body);
+    // Use rawBody for accurate signature verification
+    // Firebase Functions provides rawBody on the request object
+    const rawBody = (req as any).rawBody;
+    if (!rawBody) {
+      console.error('rawBody not available');
+      res.status(500).send('Server configuration error');
+      return;
+    }
+
     const expectedSignature = crypto
       .createHmac('sha256', razorpayConfig.webhook_secret)
       .update(rawBody)
       .digest('hex');
 
-    if (expectedSignature !== signature) {
+    // Use timing-safe comparison to prevent timing attacks
+    if (!secureCompare(expectedSignature, signature)) {
       console.error('Invalid Razorpay webhook signature');
       res.status(400).send('Invalid signature');
       return;
@@ -283,6 +347,32 @@ export const razorpayWebhook = functions.https.onRequest(async (req, res) => {
 
     const event = req.body.event;
     const payload = req.body.payload;
+
+    // Replay attack prevention: Check if we've already processed this webhook
+    // Razorpay includes a unique event ID in the payload
+    const eventId = req.body.event_id || req.body.payload?.payment?.entity?.id ||
+                    req.body.payload?.subscription?.entity?.id;
+
+    if (eventId) {
+      const webhookRef = db.collection('processed_webhooks').doc(eventId);
+      const webhookDoc = await webhookRef.get();
+
+      if (webhookDoc.exists) {
+        console.log('Duplicate webhook ignored:', eventId);
+        res.status(200).send('OK - Already processed');
+        return;
+      }
+
+      // Mark as processed with TTL (auto-cleanup after 7 days)
+      await webhookRef.set({
+        eventId: eventId,
+        eventType: event,
+        processedAt: admin.firestore.FieldValue.serverTimestamp(),
+        expiresAt: admin.firestore.Timestamp.fromDate(
+          new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        ),
+      });
+    }
 
     console.log('Razorpay webhook received:', event);
 
@@ -610,17 +700,24 @@ export const cancelSubscription = functions.https.onRequest((req, res) => {
       // Cancel at end of current billing period (not immediately)
       await razorpay.subscriptions.cancel(subscriptionId, { cancel_at_cycle_end: 1 });
 
+      // Use batch write for atomic operations
+      const batch = db.batch();
+
       // Update user record
-      await db.collection('users').doc(decodedToken.uid).update({
+      const userRef = db.collection('users').doc(decodedToken.uid);
+      batch.update(userRef, {
         planStatus: 'cancelled',
         subscription_cancelled_at: admin.firestore.FieldValue.serverTimestamp(),
       });
 
       // Update subscription record
-      await db.collection('subscriptions').doc(subscriptionId).update({
+      const subRef = db.collection('subscriptions').doc(subscriptionId);
+      batch.update(subRef, {
         status: 'cancelled',
         cancelledAt: admin.firestore.FieldValue.serverTimestamp(),
       });
+
+      await batch.commit();
 
       res.json({
         success: true,
@@ -677,4 +774,161 @@ export const getSubscriptionStatus = functions.https.onRequest((req, res) => {
       res.status(500).json({ success: false, error: 'Failed to get subscription status' });
     }
   });
-})
+});
+
+/**
+ * Delete User Account (GDPR/CCPA Right to Erasure)
+ *
+ * Deletes all user data including:
+ * - User profile document
+ * - All subcollections (projects, payments, etc.)
+ * - Related orders and subscriptions
+ * - Firebase Auth account
+ */
+export const deleteAccount = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    if (req.method !== 'POST') {
+      res.status(405).json({ success: false, error: 'Method not allowed' });
+      return;
+    }
+
+    try {
+      const decodedToken = await verifyAuth(req);
+      if (!decodedToken) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
+
+      const uid = decodedToken.uid;
+      console.log('Account deletion requested for user:', uid);
+
+      // Cancel any active Razorpay subscription first
+      const userDoc = await db.collection('users').doc(uid).get();
+      const userData = userDoc.data();
+
+      if (userData?.razorpay_subscription_id && userData?.planStatus === 'active') {
+        try {
+          const razorpay = getRazorpay();
+          await razorpay.subscriptions.cancel(userData.razorpay_subscription_id, {
+            cancel_at_cycle_end: 0, // Cancel immediately
+          });
+          console.log('Razorpay subscription cancelled:', userData.razorpay_subscription_id);
+        } catch (subError) {
+          console.error('Failed to cancel subscription (continuing with deletion):', subError);
+        }
+      }
+
+      // Delete user subcollections
+      const subcollections = ['projects', 'payments', 'voice_samples', 'favorites'];
+      for (const subcollection of subcollections) {
+        const subRef = db.collection('users').doc(uid).collection(subcollection);
+        const subDocs = await subRef.listDocuments();
+        for (const doc of subDocs) {
+          // For projects, also delete nested subcollections
+          if (subcollection === 'projects') {
+            const nestedCollections = ['segments', 'exports'];
+            for (const nested of nestedCollections) {
+              const nestedDocs = await doc.collection(nested).listDocuments();
+              for (const nestedDoc of nestedDocs) {
+                await nestedDoc.delete();
+              }
+            }
+          }
+          await doc.delete();
+        }
+      }
+
+      // Delete related orders
+      const ordersQuery = await db.collection('orders').where('uid', '==', uid).get();
+      for (const orderDoc of ordersQuery.docs) {
+        await orderDoc.ref.delete();
+      }
+
+      // Delete related subscriptions
+      const subsQuery = await db.collection('subscriptions').where('uid', '==', uid).get();
+      for (const subDoc of subsQuery.docs) {
+        await subDoc.ref.delete();
+      }
+
+      // Delete user document
+      await db.collection('users').doc(uid).delete();
+
+      // Delete Firebase Auth user
+      await admin.auth().deleteUser(uid);
+
+      console.log('Account deleted successfully:', uid);
+
+      res.json({
+        success: true,
+        message: 'Your account and all associated data have been permanently deleted.',
+      });
+
+    } catch (error) {
+      console.error('Delete account error:', error);
+      res.status(500).json({ success: false, error: 'Failed to delete account. Please contact support.' });
+    }
+  });
+});
+
+/**
+ * Export User Data (GDPR Data Portability)
+ *
+ * Returns all user data in a downloadable format
+ */
+export const exportUserData = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    if (req.method !== 'GET') {
+      res.status(405).json({ success: false, error: 'Method not allowed' });
+      return;
+    }
+
+    try {
+      const decodedToken = await verifyAuth(req);
+      if (!decodedToken) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
+
+      const uid = decodedToken.uid;
+      const exportData: Record<string, any> = {
+        exportedAt: new Date().toISOString(),
+        userId: uid,
+      };
+
+      // Get user profile
+      const userDoc = await db.collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        exportData.profile = userDoc.data();
+      }
+
+      // Get projects
+      const projectsSnap = await db.collection('users').doc(uid).collection('projects').get();
+      exportData.projects = projectsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // Get payments
+      const paymentsSnap = await db.collection('users').doc(uid).collection('payments').get();
+      exportData.payments = paymentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // Get favorites
+      const favoritesSnap = await db.collection('users').doc(uid).collection('favorites').get();
+      exportData.favorites = favoritesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // Get orders
+      const ordersSnap = await db.collection('orders').where('uid', '==', uid).get();
+      exportData.orders = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // Get subscriptions
+      const subsSnap = await db.collection('subscriptions').where('uid', '==', uid).get();
+      exportData.subscriptions = subsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      res.json({
+        success: true,
+        data: exportData,
+      });
+
+    } catch (error) {
+      console.error('Export user data error:', error);
+      res.status(500).json({ success: false, error: 'Failed to export data' });
+    }
+  });
+});

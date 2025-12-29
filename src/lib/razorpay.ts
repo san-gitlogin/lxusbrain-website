@@ -52,6 +52,7 @@ interface RazorpayResponse {
   razorpay_signature: string;
 }
 
+// Exported types for subscription management
 export type PlanId = 'individual' | 'pro' | 'enterprise';
 export type BillingPeriod = 'monthly' | 'yearly';
 
@@ -302,6 +303,26 @@ export async function createSubscription(
 }
 
 /**
+ * Validate that a URL is a safe Razorpay redirect
+ * Prevents open redirect attacks by only allowing Razorpay domains
+ */
+function isValidRazorpayUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    // Only allow official Razorpay domains
+    const allowedDomains = [
+      'razorpay.com',
+      'rzp.io', // Razorpay short URL domain
+    ];
+    return allowedDomains.some(domain =>
+      parsed.hostname === domain || parsed.hostname.endsWith('.' + domain)
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Initiate subscription payment (autopay)
  *
  * Opens Razorpay's hosted subscription page
@@ -323,6 +344,12 @@ export async function initiateSubscription(
     }
 
     if (response.shortUrl) {
+      // Validate URL before redirect to prevent open redirect attacks
+      if (!isValidRazorpayUrl(response.shortUrl)) {
+        console.error('Invalid redirect URL:', response.shortUrl);
+        callbacks.onError('Invalid payment URL. Please contact support.');
+        return;
+      }
       // Redirect to Razorpay's hosted subscription page
       window.location.href = response.shortUrl;
     } else {
@@ -366,6 +393,84 @@ export async function getSubscriptionStatus(): Promise<GetSubscriptionStatusResp
   });
 
   return response.json();
+}
+
+interface DeleteAccountResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
+interface ExportDataResponse {
+  success: boolean;
+  data?: Record<string, unknown>;
+  error?: string;
+}
+
+/**
+ * Delete user account and all associated data (GDPR Right to Erasure)
+ *
+ * This permanently deletes:
+ * - User profile
+ * - All projects and segments
+ * - Payment history
+ * - Active subscriptions
+ * - Firebase Auth account
+ */
+export async function deleteAccount(): Promise<DeleteAccountResponse> {
+  const token = await getAuthToken();
+
+  const response = await fetch(FUNCTIONS_BASE_URL + '/deleteAccount', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token,
+    },
+  });
+
+  return response.json();
+}
+
+/**
+ * Export all user data (GDPR Data Portability)
+ *
+ * Returns all user data in JSON format for download
+ */
+export async function exportUserData(): Promise<ExportDataResponse> {
+  const token = await getAuthToken();
+
+  const response = await fetch(FUNCTIONS_BASE_URL + '/exportUserData', {
+    method: 'GET',
+    headers: {
+      'Authorization': 'Bearer ' + token,
+    },
+  });
+
+  return response.json();
+}
+
+/**
+ * Download user data as a JSON file
+ */
+export async function downloadUserData(): Promise<void> {
+  const response = await exportUserData();
+
+  if (!response.success || !response.data) {
+    throw new Error(response.error || 'Failed to export data');
+  }
+
+  // Create and download JSON file
+  const blob = new Blob([JSON.stringify(response.data, null, 2)], {
+    type: 'application/json',
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `termivoxed-data-export-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 export type { SubscriptionStatus };

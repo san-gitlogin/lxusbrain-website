@@ -1,9 +1,8 @@
-"use client"
-
 import type React from "react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion"
-import { Play, X, Mic, Globe, Video, Wand2, Subtitles, Layers } from "lucide-react"
+import { Play, Mic, Globe, Video, Wand2, Subtitles, Layers } from "lucide-react"
+import { VideoModal } from "@/components/ui/video-player"
 
 interface ShowcaseVideo {
   id: string
@@ -97,21 +96,26 @@ export function VideoShowcase({ className }: VideoShowcaseProps) {
     }
   }
 
-  const goNext = () => {
+  const goNext = useCallback(() => {
     if (!isPlaying) {
       setActiveIndex((prev) => (prev + 1) % showcaseVideos.length)
     }
-  }
-  const goPrev = () => {
+  }, [isPlaying])
+
+  const goPrev = useCallback(() => {
     if (!isPlaying) {
       setActiveIndex((prev) => (prev - 1 + showcaseVideos.length) % showcaseVideos.length)
     }
-  }
+  }, [isPlaying])
 
   // Auto-advance every 6 seconds when not playing
   useEffect(() => {
     if (isPlaying) return
-    const timer = setInterval(goNext, 6000)
+
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % showcaseVideos.length)
+    }, 6000)
+
     return () => clearInterval(timer)
   }, [isPlaying])
 
@@ -415,59 +419,12 @@ export function VideoShowcase({ className }: VideoShowcaseProps) {
       </div>
 
       {/* Video Player Modal */}
-      <AnimatePresence>
-        {isPlaying && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={handleClose}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative w-full max-w-4xl aspect-video bg-gray-900 rounded-2xl overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Close button */}
-              <button
-                onClick={handleClose}
-                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-              >
-                <X className="w-5 h-5 text-white" />
-              </button>
-
-              {current.videoUrl ? (
-                // Actual video embed
-                <iframe
-                  src={current.videoUrl}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : (
-                // Placeholder when no video URL
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-20 h-20 rounded-full bg-cyan-500/20 flex items-center justify-center mx-auto mb-4">
-                      <IconComponent className="w-10 h-10 text-cyan-400" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-white mb-2">{current.title}</h3>
-                    <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                      {current.description}
-                    </p>
-                    <p className="text-sm text-cyan-400">Video coming soon</p>
-                    <p className="text-xs text-muted-foreground/60 mt-2">Click anywhere to close</p>
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <VideoModal
+        isOpen={isPlaying}
+        onClose={handleClose}
+        src={current.videoUrl || ""}
+        title={current.title}
+      />
     </div>
   )
 }

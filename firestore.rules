@@ -125,5 +125,38 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+
+    // ============================================
+    // ORDERS (Cloud Functions only)
+    // Users can only read their own orders
+    // ============================================
+    match /orders/{orderId} {
+      // Users can read their own orders
+      allow read: if isAuthenticated() &&
+        resource.data.uid == request.auth.uid;
+      // Only Cloud Functions can create/update orders
+      allow write: if false;
+    }
+
+    // ============================================
+    // SUBSCRIPTIONS (Cloud Functions only)
+    // Users can only read their own subscriptions
+    // ============================================
+    match /subscriptions/{subscriptionId} {
+      // Users can read their own subscriptions
+      allow read: if isAuthenticated() &&
+        resource.data.uid == request.auth.uid;
+      // Only Cloud Functions can create/update subscriptions
+      allow write: if false;
+    }
+
+    // ============================================
+    // PROCESSED WEBHOOKS (Cloud Functions only)
+    // Used for replay attack prevention
+    // ============================================
+    match /processed_webhooks/{eventId} {
+      // No client access - Cloud Functions only
+      allow read, write: if false;
+    }
   }
 }

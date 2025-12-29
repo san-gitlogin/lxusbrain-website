@@ -16,7 +16,7 @@ import {
   RefreshCcw
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
-import { initiatePayment, cancelSubscription, PlanId, BillingPeriod, SubscriptionStatus } from '@/lib/razorpay'
+import { initiatePayment, cancelSubscription, type PlanId, type BillingPeriod, type SubscriptionStatus } from '@/lib/razorpay'
 import { TermiVoxedLogo, LxusBrainLogo } from '@/components/logos'
 import { BeamsBackground } from '@/components/ui/beams-background'
 import { GlowingEffect } from '@/components/ui/glowing-effect'
@@ -630,10 +630,11 @@ export function SubscriptionPage() {
                 <p className="text-xs text-muted-foreground/60 mb-4">
                   Cards, UPI, Net Banking, Wallets supported
                 </p>
-                <div className="flex items-center justify-center gap-3 opacity-60">
-                  <img src="https://cdn.razorpay.com/static/assets/logo/payment/visa.svg" alt="Visa" className="h-6" />
-                  <img src="https://cdn.razorpay.com/static/assets/logo/payment/mastercard.svg" alt="Mastercard" className="h-6" />
-                  <img src="https://cdn.razorpay.com/static/assets/logo/payment/upi.svg" alt="UPI" className="h-6" />
+                <div className="flex items-center justify-center gap-4 opacity-70">
+                  <span className="text-xs font-medium text-zinc-400 border border-zinc-700 rounded px-2 py-1">VISA</span>
+                  <span className="text-xs font-medium text-zinc-400 border border-zinc-700 rounded px-2 py-1">Mastercard</span>
+                  <span className="text-xs font-medium text-zinc-400 border border-zinc-700 rounded px-2 py-1">UPI</span>
+                  <span className="text-xs font-medium text-zinc-400 border border-zinc-700 rounded px-2 py-1">NetBanking</span>
                 </div>
               </div>
             </motion.div>

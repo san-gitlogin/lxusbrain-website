@@ -271,8 +271,65 @@ export function TermiVoxedPage() {
         </div>
       </HeroGeometric>
 
-      {/* Product Overview Section */}
-      <section id="overview" className="py-16 md:py-24 px-4 bg-gradient-to-b from-background to-background/50">
+      {/* Problem Showcase Section - Sell the Pain Points */}
+      <section id="problem" className="py-12 md:py-16 px-4 bg-gradient-to-b from-background to-background/50 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-6 md:mb-10"
+          >
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm mb-4">
+              The Problem
+            </span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-orange-500">Still Making PPTs?</span>
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Your competitors are shipping cinematic videos. You're clicking through slides.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true }}
+          >
+            <ProblemShowcase />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Features Section - The Solution */}
+      <section id="features" className="py-12 md:py-16 px-4 bg-gradient-to-b from-background/50 to-background">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-8 md:mb-12"
+          >
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm mb-4">
+              The Solution
+            </span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
+              Powerful <span className="gradient-text">Capabilities</span>
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Everything you need to turn screen recordings into professional productions
+            </p>
+          </motion.div>
+
+          <FeatureShowcase />
+        </div>
+      </section>
+
+      {/* Product Overview Section - Download CTA */}
+      <section id="overview" className="py-12 md:py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -322,72 +379,15 @@ export function TermiVoxedPage() {
         </div>
       </section>
 
-      {/* Problem Showcase Section - Sell the Pain Points */}
-      <section id="features" className="py-16 md:py-24 px-4 bg-gradient-to-b from-background/50 to-background overflow-hidden">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-6 md:mb-10"
-          >
-            <span className="inline-flex items-center px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm mb-4">
-              The Problem
-            </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-orange-500">Still Making PPTs?</span>
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Your competitors are shipping cinematic videos. You're clicking through slides.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            <ProblemShowcase />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Features Section - The Solution */}
-      <section className="py-16 md:py-24 px-4">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-10 md:mb-16"
-          >
-            <span className="inline-flex items-center px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm mb-4">
-              The Solution
-            </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Powerful <span className="gradient-text">Capabilities</span>
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Everything you need to turn screen recordings into professional productions
-            </p>
-          </motion.div>
-
-          <FeatureShowcase />
-        </div>
-      </section>
-
       {/* Showcase Section - Visual Feature Demos */}
-      <section className="py-16 md:py-24 px-4 bg-gradient-to-b from-background to-background/50">
+      <section className="py-12 md:py-16 px-4 bg-gradient-to-b from-background to-background/50">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="text-center mb-10 md:mb-16"
+            className="text-center mb-8 md:mb-12"
           >
             <span className="inline-flex items-center px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm mb-4">
               See It In Action
@@ -400,7 +400,7 @@ export function TermiVoxedPage() {
             </p>
           </motion.div>
 
-          <div className="space-y-16 md:space-y-24">
+          <div className="space-y-12 md:space-y-16">
             {showcaseItems.map((item, index) => (
               <motion.div
                 key={index}
@@ -466,14 +466,14 @@ export function TermiVoxedPage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-16 md:py-24 px-4 bg-gradient-to-b from-background/50 to-background overflow-hidden">
+      <section className="py-12 md:py-16 px-4 bg-gradient-to-b from-background/50 to-background overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="text-center mb-10 md:mb-16"
+            className="text-center mb-8 md:mb-12"
           >
             <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm mb-4">
               Testimonials
@@ -495,7 +495,7 @@ export function TermiVoxedPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-16 md:py-24 px-4">
+      <section id="pricing" className="py-12 md:py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

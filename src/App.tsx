@@ -5,6 +5,9 @@ import './index.css'
 // Auth Provider
 import { AuthProvider } from '@/lib/auth-context'
 
+// Cookie Consent Banner
+import { CookieConsent } from '@/components/ui/cookie-consent'
+
 // Pages
 import { HomePage } from '@/pages/HomePage'
 import { TermiVoxedPage } from '@/pages/TermiVoxedPage'
@@ -45,6 +48,9 @@ function App() {
           <Route path="/termivoxed/settings" element={<SettingsPage />} />
           <Route path="/termivoxed/subscription" element={<SubscriptionPage />} />
         </Routes>
+
+        {/* Cookie Consent Banner - GDPR/CCPA Compliance */}
+        <CookieConsent />
       </AuthProvider>
     </BrowserRouter>
   )
