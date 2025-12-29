@@ -480,3 +480,201 @@ async function handleSubscriptionHalted(payload: any) {
     planStatus: 'payment_failed',
   });
 }
+
+/**
+ * Create Razorpay Subscription (for autopay/recurring payments)
+ *
+ * This creates a subscription that auto-renews monthly/yearly
+ */
+export const createSubscription = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    if (req.method !== 'POST') {
+      res.status(405).json({ success: false, error: 'Method not allowed' });
+      return;
+    }
+
+    try {
+      const decodedToken = await verifyAuth(req);
+      if (!decodedToken) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
+
+      const { planId, billingPeriod } = req.body as { planId: PlanId; billingPeriod: BillingPeriod };
+
+      if (!planId || !PLANS[planId]) {
+        res.status(400).json({ success: false, error: 'Invalid plan' });
+        return;
+      }
+
+      if (!billingPeriod || !['monthly', 'yearly'].includes(billingPeriod)) {
+        res.status(400).json({ success: false, error: 'Invalid billing period' });
+        return;
+      }
+
+      const plan = PLANS[planId];
+      const pricing = plan[billingPeriod];
+
+      if (!pricing.razorpay_plan_id) {
+        res.status(400).json({
+          success: false,
+          error: 'Subscription plan not configured. Please contact support.'
+        });
+        return;
+      }
+
+      // Check if user already has an active subscription
+      const userDoc = await db.collection('users').doc(decodedToken.uid).get();
+      const userData = userDoc.data();
+
+      if (userData?.razorpay_subscription_id && userData?.planStatus === 'active') {
+        res.status(400).json({
+          success: false,
+          error: 'You already have an active subscription. Please cancel it first.'
+        });
+        return;
+      }
+
+      const razorpay = getRazorpay();
+
+      // Create subscription
+      const subscription = await razorpay.subscriptions.create({
+        plan_id: pricing.razorpay_plan_id,
+        total_count: billingPeriod === 'yearly' ? 10 : 120, // 10 years or 120 months max
+        quantity: 1,
+        customer_notify: 1,
+        notes: {
+          firebase_uid: decodedToken.uid,
+          planId: planId,
+          billingPeriod: billingPeriod,
+        },
+      });
+
+      // Store subscription in Firestore
+      await db.collection('subscriptions').doc(subscription.id).set({
+        subscriptionId: subscription.id,
+        uid: decodedToken.uid,
+        planId: planId,
+        billingPeriod: billingPeriod,
+        status: subscription.status,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      res.json({
+        success: true,
+        subscriptionId: subscription.id,
+        shortUrl: subscription.short_url, // Razorpay hosted payment page
+        amount: pricing.amount,
+        currency: pricing.currency,
+        keyId: razorpayConfig.key_id,
+      });
+
+    } catch (error) {
+      console.error('Create subscription error:', error);
+      res.status(500).json({ success: false, error: 'Failed to create subscription' });
+    }
+  });
+});
+
+/**
+ * Cancel Subscription
+ *
+ * Cancels an active subscription. User retains access until current period ends.
+ */
+export const cancelSubscription = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    if (req.method !== 'POST') {
+      res.status(405).json({ success: false, error: 'Method not allowed' });
+      return;
+    }
+
+    try {
+      const decodedToken = await verifyAuth(req);
+      if (!decodedToken) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
+
+      // Get user's subscription ID
+      const userDoc = await db.collection('users').doc(decodedToken.uid).get();
+      const userData = userDoc.data();
+
+      if (!userData?.razorpay_subscription_id) {
+        res.status(400).json({ success: false, error: 'No active subscription found' });
+        return;
+      }
+
+      const subscriptionId = userData.razorpay_subscription_id;
+      const razorpay = getRazorpay();
+
+      // Cancel at end of current billing period (not immediately)
+      await razorpay.subscriptions.cancel(subscriptionId, { cancel_at_cycle_end: 1 });
+
+      // Update user record
+      await db.collection('users').doc(decodedToken.uid).update({
+        planStatus: 'cancelled',
+        subscription_cancelled_at: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      // Update subscription record
+      await db.collection('subscriptions').doc(subscriptionId).update({
+        status: 'cancelled',
+        cancelledAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      res.json({
+        success: true,
+        message: 'Subscription cancelled. You will retain access until the end of your current billing period.',
+      });
+
+    } catch (error) {
+      console.error('Cancel subscription error:', error);
+      res.status(500).json({ success: false, error: 'Failed to cancel subscription' });
+    }
+  });
+});
+
+/**
+ * Get Subscription Status
+ *
+ * Returns current subscription details for the user
+ */
+export const getSubscriptionStatus = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    if (req.method !== 'GET') {
+      res.status(405).json({ success: false, error: 'Method not allowed' });
+      return;
+    }
+
+    try {
+      const decodedToken = await verifyAuth(req);
+      if (!decodedToken) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
+
+      const userDoc = await db.collection('users').doc(decodedToken.uid).get();
+      const userData = userDoc.data();
+
+      if (!userData) {
+        res.status(404).json({ success: false, error: 'User not found' });
+        return;
+      }
+
+      res.json({
+        success: true,
+        subscription: {
+          plan: userData.plan || 'free',
+          status: userData.planStatus || 'none',
+          expiresAt: userData.subscription_expires_at?.toDate?.()?.toISOString() || null,
+          cancelledAt: userData.subscription_cancelled_at?.toDate?.()?.toISOString() || null,
+          billingPeriod: userData.billing_period || null,
+        },
+      });
+
+    } catch (error) {
+      console.error('Get subscription status error:', error);
+      res.status(500).json({ success: false, error: 'Failed to get subscription status' });
+    }
+  });
+})

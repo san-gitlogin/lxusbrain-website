@@ -70,6 +70,36 @@ interface VerifyPaymentResponse {
   error?: string;
 }
 
+interface CreateSubscriptionResponse {
+  success: boolean;
+  subscriptionId?: string;
+  shortUrl?: string;
+  amount?: number;
+  currency?: string;
+  keyId?: string;
+  error?: string;
+}
+
+interface CancelSubscriptionResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
+interface SubscriptionStatus {
+  plan: string;
+  status: 'none' | 'active' | 'cancelled' | 'payment_failed';
+  expiresAt: string | null;
+  cancelledAt: string | null;
+  billingPeriod: 'monthly' | 'yearly' | null;
+}
+
+interface GetSubscriptionStatusResponse {
+  success: boolean;
+  subscription?: SubscriptionStatus;
+  error?: string;
+}
+
 /**
  * Load Razorpay script dynamically
  */
@@ -247,3 +277,95 @@ export const PLAN_INFO = {
     features: ['2000 exports/month', 'Custom branding', 'Dedicated support', 'SLA guarantee', 'Up to 50 devices'],
   },
 } as const;
+
+/**
+ * Create a subscription (for recurring/autopay)
+ *
+ * This redirects to Razorpay's hosted subscription page
+ */
+export async function createSubscription(
+  planId: PlanId,
+  billingPeriod: BillingPeriod
+): Promise<CreateSubscriptionResponse> {
+  const token = await getAuthToken();
+
+  const response = await fetch(FUNCTIONS_BASE_URL + '/createSubscription', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token,
+    },
+    body: JSON.stringify({ planId, billingPeriod }),
+  });
+
+  return response.json();
+}
+
+/**
+ * Initiate subscription payment (autopay)
+ *
+ * Opens Razorpay's hosted subscription page
+ */
+export async function initiateSubscription(
+  planId: PlanId,
+  billingPeriod: BillingPeriod,
+  callbacks: {
+    onSuccess: (subscriptionId: string) => void;
+    onError: (error: string) => void;
+  }
+): Promise<void> {
+  try {
+    const response = await createSubscription(planId, billingPeriod);
+
+    if (!response.success) {
+      callbacks.onError(response.error || 'Failed to create subscription');
+      return;
+    }
+
+    if (response.shortUrl) {
+      // Redirect to Razorpay's hosted subscription page
+      window.location.href = response.shortUrl;
+    } else {
+      callbacks.onError('Subscription URL not available');
+    }
+  } catch (error) {
+    callbacks.onError(error instanceof Error ? error.message : 'Failed to create subscription');
+  }
+}
+
+/**
+ * Cancel active subscription
+ *
+ * Subscription remains active until end of current billing period
+ */
+export async function cancelSubscription(): Promise<CancelSubscriptionResponse> {
+  const token = await getAuthToken();
+
+  const response = await fetch(FUNCTIONS_BASE_URL + '/cancelSubscription', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token,
+    },
+  });
+
+  return response.json();
+}
+
+/**
+ * Get current subscription status
+ */
+export async function getSubscriptionStatus(): Promise<GetSubscriptionStatusResponse> {
+  const token = await getAuthToken();
+
+  const response = await fetch(FUNCTIONS_BASE_URL + '/getSubscriptionStatus', {
+    method: 'GET',
+    headers: {
+      'Authorization': 'Bearer ' + token,
+    },
+  });
+
+  return response.json();
+}
+
+export type { SubscriptionStatus };

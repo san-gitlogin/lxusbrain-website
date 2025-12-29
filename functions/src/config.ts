@@ -28,16 +28,22 @@ export function validateConfig(): void {
 }
 
 // Plan configuration with pricing
+// Note: Razorpay Plan IDs should be created in Razorpay Dashboard
+// Dashboard > Subscriptions > Plans > Create Plan
+// After creating, add the plan IDs below
 export const PLANS = {
   individual: {
     name: 'Individual',
     monthly: {
       amount: 19900, // Rs.199 in paise
       currency: 'INR',
+      // Create this plan in Razorpay Dashboard and add ID here
+      razorpay_plan_id: '', // e.g., 'plan_ABC123monthly'
     },
     yearly: {
       amount: 200400, // Rs.2004 in paise (Rs.167/month)
       currency: 'INR',
+      razorpay_plan_id: '', // e.g., 'plan_ABC123yearly'
     },
     features: {
       exports_per_month: 200,
@@ -53,10 +59,12 @@ export const PLANS = {
     monthly: {
       amount: 39900, // Rs.399 in paise
       currency: 'INR',
+      razorpay_plan_id: '', // e.g., 'plan_XYZ456monthly'
     },
     yearly: {
       amount: 399600, // Rs.3996 in paise (Rs.333/month)
       currency: 'INR',
+      razorpay_plan_id: '', // e.g., 'plan_XYZ456yearly'
     },
     features: {
       exports_per_month: -1, // Unlimited
@@ -74,10 +82,12 @@ export const PLANS = {
     monthly: {
       amount: 0, // Custom pricing
       currency: 'INR',
+      razorpay_plan_id: '',
     },
     yearly: {
       amount: 0,
       currency: 'INR',
+      razorpay_plan_id: '',
     },
     features: {
       exports_per_month: 2000,
