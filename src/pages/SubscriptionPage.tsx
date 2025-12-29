@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   ArrowLeft,
   CreditCard,
   BadgeCheck,
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Shield
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
+import { initiatePayment, PlanId, BillingPeriod } from '@/lib/razorpay'
 import { TermiVoxedLogo, LxusBrainLogo } from '@/components/logos'
 import { BeamsBackground } from '@/components/ui/beams-background'
 import { GlowingEffect } from '@/components/ui/glowing-effect'
@@ -52,12 +57,15 @@ const plans = [
   }
 ]
 
+type PaymentStatus = 'idle' | 'loading' | 'success' | 'error'
+
 export function SubscriptionPage() {
   const navigate = useNavigate()
   const { user, profile, loading } = useAuth()
-  const [frequency, setFrequency] = useState<'monthly' | 'yearly'>('monthly')
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+  const [frequency, setFrequency] = useState<BillingPeriod>('monthly')
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle')
+  const [paymentMessage, setPaymentMessage] = useState('')
+  const [processingPlan, setProcessingPlan] = useState<string | null>(null)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -65,13 +73,55 @@ export function SubscriptionPage() {
     }
   }, [user, loading, navigate])
 
-  const handleUpgrade = (planId: string) => {
+  const handleUpgrade = async (planId: string) => {
     if (planId === 'enterprise') {
       window.location.href = 'mailto:lxusbrain@gmail.com?subject=Enterprise Plan Inquiry'
       return
     }
-    setSelectedPlan(planId)
-    setShowUpgradeModal(true)
+
+    if (planId === 'free') return
+
+    setProcessingPlan(planId)
+    setPaymentStatus('loading')
+    setPaymentMessage('')
+
+    try {
+      await initiatePayment(
+        planId as PlanId,
+        frequency,
+        {
+          name: user?.displayName || undefined,
+          email: user?.email || undefined,
+        },
+        {
+          onSuccess: (message) => {
+            setPaymentStatus('success')
+            setPaymentMessage(message)
+            // Refresh profile after successful payment
+            setTimeout(() => {
+              window.location.reload()
+            }, 2000)
+          },
+          onError: (error) => {
+            setPaymentStatus('error')
+            setPaymentMessage(error)
+          },
+          onCancel: () => {
+            setPaymentStatus('idle')
+            setProcessingPlan(null)
+          }
+        }
+      )
+    } catch (error) {
+      setPaymentStatus('error')
+      setPaymentMessage(error instanceof Error ? error.message : 'Payment failed')
+    }
+  }
+
+  const closeStatusModal = () => {
+    setPaymentStatus('idle')
+    setProcessingPlan(null)
+    setPaymentMessage('')
   }
 
   if (loading) {
@@ -100,42 +150,57 @@ export function SubscriptionPage() {
 
   return (
     <BeamsBackground intensity="subtle" className="min-h-screen bg-background">
-      {/* Upgrade Confirmation Modal */}
-      {showUpgradeModal && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
-        >
+      {/* Payment Status Modal */}
+      <AnimatePresence>
+        {paymentStatus !== 'idle' && (
           <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-card border border-border rounded-2xl p-6 max-w-md w-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <CreditCard className="w-5 h-5 text-cyan-400" />
-              <h3 className="text-lg font-semibold text-foreground">Upgrade to {plans.find(p => p.id === selectedPlan)?.name}</h3>
-            </div>
-            <p className="text-muted-foreground mb-6">
-              Payment integration via Razorpay is coming soon. For now, please contact us for subscription.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowUpgradeModal(false)}
-                className="flex-1 py-2.5 rounded-lg bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.08] text-foreground text-sm transition-all"
-              >
-                Cancel
-              </button>
-              <a
-                href="mailto:lxusbrain@gmail.com?subject=Subscription Upgrade Request"
-                className="flex-1 py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium text-center transition-all"
-              >
-                Contact Us
-              </a>
-            </div>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-card border border-border rounded-2xl p-6 max-w-md w-full text-center"
+            >
+              {paymentStatus === 'loading' && (
+                <>
+                  <Loader2 className="w-12 h-12 text-cyan-400 mx-auto mb-4 animate-spin" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Processing Payment</h3>
+                  <p className="text-muted-foreground">
+                    Please complete the payment in the Razorpay window...
+                  </p>
+                </>
+              )}
+
+              {paymentStatus === 'success' && (
+                <>
+                  <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Payment Successful!</h3>
+                  <p className="text-muted-foreground mb-4">{paymentMessage}</p>
+                  <p className="text-sm text-muted-foreground">Refreshing page...</p>
+                </>
+              )}
+
+              {paymentStatus === 'error' && (
+                <>
+                  <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Payment Failed</h3>
+                  <p className="text-muted-foreground mb-6">{paymentMessage}</p>
+                  <button
+                    onClick={closeStatusModal}
+                    className="px-6 py-2.5 rounded-lg bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.08] text-foreground text-sm transition-all"
+                  >
+                    Try Again
+                  </button>
+                </>
+              )}
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -224,7 +289,7 @@ export function SubscriptionPage() {
             </div>
           </motion.div>
 
-          {/* Plans Grid - Same style as TermiVoxed */}
+          {/* Plans Grid */}
           <motion.div
             custom={2}
             variants={fadeUp}
@@ -237,6 +302,7 @@ export function SubscriptionPage() {
               const isCurrent = currentPlan === plan.id
               const isHighlighted = plan.highlighted
               const isPopular = plan.popular
+              const isProcessing = processingPlan === plan.id && paymentStatus === 'loading'
 
               return (
                 <div key={plan.id} className="relative rounded-xl h-full">
@@ -321,10 +387,20 @@ export function SubscriptionPage() {
                     ) : (
                       <button
                         onClick={() => handleUpgrade(plan.id)}
-                        className="w-full py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 relative z-10"
+                        disabled={isProcessing}
+                        className="w-full py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 relative z-10 disabled:opacity-50"
                       >
-                        {plan.cta}
-                        <ArrowRight className="w-4 h-4" />
+                        {isProcessing ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            {plan.cta}
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
                       </button>
                     )}
                   </div>
@@ -347,7 +423,7 @@ export function SubscriptionPage() {
               <div className="text-center py-6">
                 <p className="text-muted-foreground mb-2">No billing history yet</p>
                 <p className="text-sm text-muted-foreground/60">
-                  Your invoices will appear here
+                  Your invoices will appear here after your first payment
                 </p>
               </div>
             </motion.div>
@@ -362,17 +438,22 @@ export function SubscriptionPage() {
             >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-foreground">Payment Method</h2>
-                <span className="text-xs text-muted-foreground">Razorpay</span>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Shield className="w-3 h-3" />
+                  Secured by Razorpay
+                </div>
               </div>
               <div className="text-center py-4">
                 <CreditCard className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground text-sm mb-3">No payment method</p>
-                <a
-                  href="mailto:lxusbrain@gmail.com?subject=Add Payment Method"
-                  className="inline-block px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium transition-all"
-                >
-                  Contact to Add
-                </a>
+                <p className="text-muted-foreground text-sm mb-1">Pay securely via Razorpay</p>
+                <p className="text-xs text-muted-foreground/60 mb-4">
+                  Cards, UPI, Net Banking, Wallets supported
+                </p>
+                <div className="flex items-center justify-center gap-3 opacity-60">
+                  <img src="https://cdn.razorpay.com/static/assets/logo/payment/visa.svg" alt="Visa" className="h-6" />
+                  <img src="https://cdn.razorpay.com/static/assets/logo/payment/mastercard.svg" alt="Mastercard" className="h-6" />
+                  <img src="https://cdn.razorpay.com/static/assets/logo/payment/upi.svg" alt="UPI" className="h-6" />
+                </div>
               </div>
             </motion.div>
           </div>

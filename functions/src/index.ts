@@ -1,0 +1,482 @@
+/**
+ * TermiVoxed Cloud Functions
+ * 
+ * Handles Razorpay payment processing:
+ * - createOrder: Creates a payment order
+ * - verifyPayment: Verifies payment signature and activates subscription
+ * - razorpayWebhook: Handles webhook events
+ */
+
+import * as functions from 'firebase-functions';
+import * as admin from 'firebase-admin';
+import * as crypto from 'crypto';
+import { razorpayConfig, validateConfig, PLANS, PlanId, BillingPeriod } from './config';
+
+// Initialize Firebase Admin
+admin.initializeApp();
+const db = admin.firestore();
+
+// Initialize Razorpay (lazy loaded)
+let razorpayInstance: any = null;
+
+function getRazorpay() {
+  if (!razorpayInstance) {
+    const Razorpay = require('razorpay');
+    razorpayInstance = new Razorpay({
+      key_id: razorpayConfig.key_id,
+      key_secret: razorpayConfig.key_secret,
+    });
+  }
+  return razorpayInstance;
+}
+
+// Validate config on cold start
+validateConfig();
+
+// CORS configuration
+const corsHandler = require('cors')({ origin: true });
+
+/**
+ * Verify Firebase Auth token from request
+ */
+async function verifyAuth(req: functions.https.Request): Promise<admin.auth.DecodedIdToken | null> {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+  
+  const token = authHeader.split('Bearer ')[1];
+  try {
+    return await admin.auth().verifyIdToken(token);
+  } catch (error) {
+    console.error('Token verification failed:', error);
+    return null;
+  }
+}
+
+/**
+ * Create Razorpay Order
+ * 
+ * Called from frontend to initiate payment
+ */
+export const createOrder = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    // Only allow POST
+    if (req.method !== 'POST') {
+      res.status(405).json({ success: false, error: 'Method not allowed' });
+      return;
+    }
+
+    try {
+      // Verify authentication
+      const decodedToken = await verifyAuth(req);
+      if (!decodedToken) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
+
+      const { planId, billingPeriod } = req.body as { planId: PlanId; billingPeriod: BillingPeriod };
+
+      // Validate plan
+      if (!planId || !PLANS[planId]) {
+        res.status(400).json({ success: false, error: 'Invalid plan' });
+        return;
+      }
+
+      if (!billingPeriod || !['monthly', 'yearly'].includes(billingPeriod)) {
+        res.status(400).json({ success: false, error: 'Invalid billing period' });
+        return;
+      }
+
+      const plan = PLANS[planId];
+      const pricing = plan[billingPeriod];
+
+      if (pricing.amount === 0) {
+        res.status(400).json({ success: false, error: 'Contact sales for Enterprise pricing' });
+        return;
+      }
+
+      // Create Razorpay order
+      const razorpay = getRazorpay();
+      const order = await razorpay.orders.create({
+        amount: pricing.amount,
+        currency: pricing.currency,
+        receipt: 'order_' + Date.now(),
+        notes: {
+          uid: decodedToken.uid,
+          planId: planId,
+          billingPeriod: billingPeriod,
+        },
+      });
+
+      // Store order in Firestore for verification
+      await db.collection('orders').doc(order.id).set({
+        orderId: order.id,
+        uid: decodedToken.uid,
+        planId: planId,
+        billingPeriod: billingPeriod,
+        amount: pricing.amount,
+        currency: pricing.currency,
+        status: 'created',
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      res.json({
+        success: true,
+        orderId: order.id,
+        amount: pricing.amount,
+        currency: pricing.currency,
+        keyId: razorpayConfig.key_id,
+      });
+
+    } catch (error) {
+      console.error('Create order error:', error);
+      res.status(500).json({ success: false, error: 'Failed to create order' });
+    }
+  });
+});
+
+/**
+ * Verify Payment
+ * 
+ * Called after Razorpay checkout completes to verify signature
+ */
+export const verifyPayment = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    if (req.method !== 'POST') {
+      res.status(405).json({ success: false, error: 'Method not allowed' });
+      return;
+    }
+
+    try {
+      // Verify authentication
+      const decodedToken = await verifyAuth(req);
+      if (!decodedToken) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
+
+      const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+      if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+        res.status(400).json({ success: false, error: 'Missing payment details' });
+        return;
+      }
+
+      // Verify signature
+      const body = razorpay_order_id + '|' + razorpay_payment_id;
+      const expectedSignature = crypto
+        .createHmac('sha256', razorpayConfig.key_secret)
+        .update(body)
+        .digest('hex');
+
+      if (expectedSignature !== razorpay_signature) {
+        console.error('Signature verification failed');
+        res.status(400).json({ success: false, error: 'Invalid payment signature' });
+        return;
+      }
+
+      // Get order details
+      const orderDoc = await db.collection('orders').doc(razorpay_order_id).get();
+      if (!orderDoc.exists) {
+        res.status(404).json({ success: false, error: 'Order not found' });
+        return;
+      }
+
+      const orderData = orderDoc.data()!;
+      
+      // Verify order belongs to this user
+      if (orderData.uid !== decodedToken.uid) {
+        res.status(403).json({ success: false, error: 'Order does not belong to this user' });
+        return;
+      }
+
+      const planId = orderData.planId as PlanId;
+      const billingPeriod = orderData.billingPeriod as BillingPeriod;
+      const plan = PLANS[planId];
+
+      // Calculate subscription dates
+      const now = new Date();
+      const expiresAt = new Date(now);
+      if (billingPeriod === 'yearly') {
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      } else {
+        expiresAt.setMonth(expiresAt.getMonth() + 1);
+      }
+
+      // Update user subscription
+      await db.collection('users').doc(decodedToken.uid).update({
+        plan: planId,
+        planStatus: 'active',
+        razorpay_payment_id: razorpay_payment_id,
+        subscription_started_at: admin.firestore.FieldValue.serverTimestamp(),
+        subscription_expires_at: admin.firestore.Timestamp.fromDate(expiresAt),
+        billing_period: billingPeriod,
+      });
+
+      // Update order status
+      await db.collection('orders').doc(razorpay_order_id).update({
+        status: 'paid',
+        paymentId: razorpay_payment_id,
+        paidAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      // Create payment record
+      await db.collection('users').doc(decodedToken.uid).collection('payments').add({
+        orderId: razorpay_order_id,
+        paymentId: razorpay_payment_id,
+        planId: planId,
+        billingPeriod: billingPeriod,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        status: 'captured',
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      res.json({
+        success: true,
+        message: 'Payment verified and subscription activated!',
+        plan: plan.name,
+        expiresAt: expiresAt.toISOString(),
+      });
+
+    } catch (error) {
+      console.error('Verify payment error:', error);
+      res.status(500).json({ success: false, error: 'Payment verification failed' });
+    }
+  });
+});
+
+/**
+ * Razorpay Webhook Handler
+ * 
+ * Handles events like subscription.charged, payment.failed, etc.
+ */
+export const razorpayWebhook = functions.https.onRequest(async (req, res) => {
+  // Only allow POST
+  if (req.method !== 'POST') {
+    res.status(405).send('Method not allowed');
+    return;
+  }
+
+  try {
+    // Verify webhook signature
+    const signature = req.headers['x-razorpay-signature'] as string;
+    
+    if (!signature) {
+      console.error('Missing Razorpay signature');
+      res.status(400).send('Missing signature');
+      return;
+    }
+
+    const rawBody = JSON.stringify(req.body);
+    const expectedSignature = crypto
+      .createHmac('sha256', razorpayConfig.webhook_secret)
+      .update(rawBody)
+      .digest('hex');
+
+    if (expectedSignature !== signature) {
+      console.error('Invalid Razorpay webhook signature');
+      res.status(400).send('Invalid signature');
+      return;
+    }
+
+    const event = req.body.event;
+    const payload = req.body.payload;
+
+    console.log('Razorpay webhook received:', event);
+
+    switch (event) {
+      case 'payment.captured':
+        await handlePaymentCaptured(payload);
+        break;
+
+      case 'payment.failed':
+        await handlePaymentFailed(payload);
+        break;
+
+      case 'subscription.activated':
+        await handleSubscriptionActivated(payload);
+        break;
+
+      case 'subscription.charged':
+        await handleSubscriptionCharged(payload);
+        break;
+
+      case 'subscription.cancelled':
+        await handleSubscriptionCancelled(payload);
+        break;
+
+      case 'subscription.halted':
+        await handleSubscriptionHalted(payload);
+        break;
+
+      default:
+        console.log('Unhandled webhook event:', event);
+    }
+
+    res.status(200).send('OK');
+
+  } catch (error) {
+    console.error('Webhook error:', error);
+    res.status(500).send('Webhook processing failed');
+  }
+});
+
+/**
+ * Handle successful payment capture
+ */
+async function handlePaymentCaptured(payload: any) {
+  const payment = payload.payment?.entity;
+  if (!payment) return;
+
+  const uid = payment.notes?.uid;
+  if (!uid) {
+    console.error('Payment captured but no UID in notes:', payment.id);
+    return;
+  }
+
+  console.log('Payment captured:', {
+    paymentId: payment.id,
+    uid: uid,
+    amount: payment.amount,
+  });
+
+  // Update order status
+  if (payment.order_id) {
+    await db.collection('orders').doc(payment.order_id).update({
+      status: 'captured',
+      paymentId: payment.id,
+      capturedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  }
+}
+
+/**
+ * Handle failed payment
+ */
+async function handlePaymentFailed(payload: any) {
+  const payment = payload.payment?.entity;
+  if (!payment) return;
+
+  console.log('Payment failed:', {
+    paymentId: payment.id,
+    orderId: payment.order_id,
+  });
+
+  // Update order status
+  if (payment.order_id) {
+    await db.collection('orders').doc(payment.order_id).update({
+      status: 'failed',
+      failedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  }
+}
+
+/**
+ * Handle subscription activation
+ */
+async function handleSubscriptionActivated(payload: any) {
+  const subscription = payload.subscription?.entity;
+  if (!subscription) return;
+
+  const uid = subscription.notes?.firebase_uid;
+  if (!uid) {
+    console.error('Subscription activated but no UID:', subscription.id);
+    return;
+  }
+
+  const planId = subscription.notes?.planId || 'individual';
+  const currentEnd = new Date(subscription.current_end * 1000);
+
+  console.log('Subscription activated:', {
+    subscriptionId: subscription.id,
+    uid: uid,
+    planId: planId,
+  });
+
+  // Update user subscription
+  await db.collection('users').doc(uid).update({
+    plan: planId,
+    planStatus: 'active',
+    razorpay_subscription_id: subscription.id,
+    subscription_expires_at: admin.firestore.Timestamp.fromDate(currentEnd),
+    subscription_started_at: admin.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+/**
+ * Handle recurring subscription charge
+ */
+async function handleSubscriptionCharged(payload: any) {
+  const subscription = payload.subscription?.entity;
+  if (!subscription) return;
+
+  const uid = subscription.notes?.firebase_uid;
+  if (!uid) return;
+
+  const currentEnd = new Date(subscription.current_end * 1000);
+
+  console.log('Subscription charged:', {
+    subscriptionId: subscription.id,
+    uid: uid,
+    nextBilling: currentEnd,
+  });
+
+  // Extend subscription
+  await db.collection('users').doc(uid).update({
+    planStatus: 'active',
+    subscription_expires_at: admin.firestore.Timestamp.fromDate(currentEnd),
+  });
+
+  // Record payment
+  await db.collection('users').doc(uid).collection('payments').add({
+    type: 'subscription_renewal',
+    subscriptionId: subscription.id,
+    status: 'captured',
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+/**
+ * Handle subscription cancellation
+ */
+async function handleSubscriptionCancelled(payload: any) {
+  const subscription = payload.subscription?.entity;
+  if (!subscription) return;
+
+  const uid = subscription.notes?.firebase_uid;
+  if (!uid) return;
+
+  console.log('Subscription cancelled:', {
+    subscriptionId: subscription.id,
+    uid: uid,
+  });
+
+  // Mark subscription as cancelled (still active until period ends)
+  await db.collection('users').doc(uid).update({
+    planStatus: 'cancelled',
+    subscription_cancelled_at: admin.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+/**
+ * Handle subscription halted (payment failures)
+ */
+async function handleSubscriptionHalted(payload: any) {
+  const subscription = payload.subscription?.entity;
+  if (!subscription) return;
+
+  const uid = subscription.notes?.firebase_uid;
+  if (!uid) return;
+
+  console.log('Subscription halted:', {
+    subscriptionId: subscription.id,
+    uid: uid,
+  });
+
+  // Mark as payment failed
+  await db.collection('users').doc(uid).update({
+    planStatus: 'payment_failed',
+  });
+}

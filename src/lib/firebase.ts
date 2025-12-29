@@ -46,10 +46,18 @@ export interface UserProfile {
   photoURL: string | null
   provider: string
   plan: 'free' | 'individual' | 'pro' | 'enterprise'
-  planStatus: 'active' | 'expired' | 'cancelled'
+  planStatus: 'active' | 'expired' | 'cancelled' | 'payment_failed'
   createdAt: Date
   lastLoginAt: Date
   earlyAccess: boolean
+  // Payment fields (managed by Cloud Functions, never by client)
+  razorpay_customer_id?: string
+  razorpay_subscription_id?: string
+  razorpay_payment_id?: string
+  subscription_expires_at?: Date
+  subscription_started_at?: Date
+  subscription_cancelled_at?: Date
+  billing_period?: 'monthly' | 'yearly'
 }
 
 // Create or update user profile in Firestore
