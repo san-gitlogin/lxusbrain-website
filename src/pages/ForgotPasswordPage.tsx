@@ -18,9 +18,16 @@ export function ForgotPasswordPage() {
     if (!email) return
 
     setIsSubmitting(true)
-    await resetPassword(email)
+    clearError()
+    const success = await resetPassword(email)
     setIsSubmitting(false)
-    setIsSuccess(true)
+
+    // Only show success if reset email was sent successfully
+    // Note: Firebase doesn't reveal if email exists for security reasons,
+    // so this succeeds even for non-existent emails (by design)
+    if (success) {
+      setIsSuccess(true)
+    }
   }
 
   const fadeUp = {

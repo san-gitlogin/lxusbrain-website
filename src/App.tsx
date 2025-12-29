@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 import './index.css'
 
@@ -8,7 +8,6 @@ import { AuthProvider } from '@/lib/auth-context'
 // Pages
 import { HomePage } from '@/pages/HomePage'
 import { TermiVoxedPage } from '@/pages/TermiVoxedPage'
-import { DownloadPage } from '@/pages/DownloadPage'
 import { AppPage } from '@/pages/AppPage'
 import { GetStartedPage } from '@/pages/GetStartedPage'
 import { LegalPage } from '@/pages/LegalPage'
@@ -19,6 +18,7 @@ import { DashboardPage } from '@/pages/DashboardPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { SubscriptionPage } from '@/pages/SubscriptionPage'
 import { DemoPage } from '@/pages/DemoPage'
+import { TrialPage } from '@/pages/trial/TrialPage'
 
 function App() {
   return (
@@ -29,9 +29,10 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/termivoxed" element={<TermiVoxedPage />} />
           <Route path="/termivoxed/app" element={<AppPage />} />
-          <Route path="/termivoxed/download" element={<DownloadPage />} />
+          <Route path="/termivoxed/download" element={<Navigate to="/termivoxed/try" replace />} />
           <Route path="/termivoxed/get-started" element={<GetStartedPage />} />
           <Route path="/termivoxed/demo" element={<DemoPage />} />
+          <Route path="/termivoxed/try" element={<TrialPage />} />
           <Route path="/legal/:type" element={<LegalPage />} />
 
           {/* Auth pages */}

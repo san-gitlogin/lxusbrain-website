@@ -2,19 +2,15 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  Mic,
-  Globe,
   Sparkles,
-  Video,
   Check,
   Menu,
   X,
   ArrowRight,
   Play,
-  Zap,
-  Shield,
   Clock,
-  LogOut
+  LogOut,
+  User
 } from 'lucide-react'
 
 // Components
@@ -24,6 +20,8 @@ import { PricingSection } from '@/components/ui/pricing-section'
 import { LetsTalk } from '@/components/ui/lets-work-section'
 import { MovingBorderButton } from '@/components/ui/moving-border'
 import { Button } from '@/components/ui/button'
+import { ProblemShowcase } from '@/components/ui/problem-showcase'
+import { FeatureShowcase } from '@/components/ui/feature-showcase'
 
 // Auth
 import { useAuth } from '@/lib/auth-context'
@@ -31,38 +29,29 @@ import { useAuth } from '@/lib/auth-context'
 // Logos
 import { LxusBrainLogo, LxusBrainTitle, TermiVoxedLogo } from '@/components/logos'
 
-// Data
-const features = [
+// Featured showcase items with larger visuals
+const showcaseItems = [
   {
-    icon: Mic,
-    title: 'AI Voice Generation',
-    description: '320+ natural voices in 75+ languages powered by cutting-edge AI technology.'
+    title: 'Intuitive Timeline Editor',
+    description: 'Professional-grade timeline with voice-over tracks, BGM mixing, and segment stacking. Drag, drop, and edit with precision.',
+    screenshot: '/screenshots/timeline.png', // Add your screenshot here
+    video: '/demo-videos/timeline-demo.mp4', // Optional: Add demo video
+    features: ['Multi-track editing', 'Segment stacking', 'Zoom controls', 'Real-time preview'],
   },
   {
-    icon: Globe,
-    title: 'Multi-Language Dubbing',
-    description: 'Professional dubbing with authentic accents and natural pronunciation.'
+    title: 'AI Voice Studio',
+    description: 'Select from 320+ natural-sounding voices across 75+ languages. Adjust pitch, speed, and volume with real-time preview.',
+    screenshot: '/screenshots/voice-studio.png', // Add your screenshot here
+    video: '/demo-videos/voice-studio-demo.mp4', // Optional: Add demo video
+    features: ['320+ voices', 'Real-time preview', 'Voice cloning', 'Emotion control'],
   },
   {
-    icon: Sparkles,
-    title: 'Smart Subtitles',
-    description: 'Auto-generate and style subtitles with 1000+ Google Fonts integration.'
+    title: 'Smart Subtitle Generation',
+    description: 'Automatically generate word-timed subtitles with advanced styling options. Choose from 1000+ Google Fonts.',
+    screenshot: '/screenshots/subtitle-editor.png', // Add your screenshot here
+    video: '/demo-videos/subtitle-demo.mp4', // Optional: Add demo video
+    features: ['Auto-transcription', 'Word-level timing', '1000+ fonts', 'Animation effects'],
   },
-  {
-    icon: Video,
-    title: 'Video Processing',
-    description: 'Multi-video projects, BGM mixing, and quality export presets.'
-  },
-  {
-    icon: Zap,
-    title: 'Voice Cloning',
-    description: 'Clone any voice with just 6 seconds of audio for personalized content.'
-  },
-  {
-    icon: Shield,
-    title: 'Enterprise Security',
-    description: 'AES-256 encryption, JWT auth, and GDPR/DPDP compliance.'
-  }
 ]
 
 const testimonials = [
@@ -111,12 +100,12 @@ const TIERS = [
     name: "Free Trial",
     price: { monthly: "Free", yearly: "Free" },
     description: "Try before you commit",
-    features: ["5 video exports", "Basic voices", "Watermark included", "Email support"],
+    features: ["5 video exports", "320+ AI voices", "Watermark included", "7-day trial"],
     cta: "Start Free",
   },
   {
     name: "Individual",
-    price: { monthly: 499, yearly: 399 },
+    price: { monthly: 199, yearly: 167 },
     description: "For creators & freelancers",
     features: ["200 exports/month", "Premium voices", "No watermark", "Priority support", "2 devices"],
     cta: "Get Started",
@@ -124,16 +113,16 @@ const TIERS = [
   },
   {
     name: "Pro",
-    price: { monthly: 999, yearly: 799 },
+    price: { monthly: 399, yearly: 333 },
     description: "For professionals",
-    features: ["500 exports/month", "Voice cloning", "API access", "24/7 support", "5 devices"],
+    features: ["Unlimited exports", "Voice cloning", "API access", "24/7 support", "3 devices"],
     cta: "Go Pro",
   },
   {
     name: "Enterprise",
     price: { monthly: "Custom", yearly: "Custom" },
     description: "For teams & organizations",
-    features: ["2000+ exports/month", "Custom branding", "Dedicated support", "SLA guarantee", "Unlimited devices"],
+    features: ["2000 exports/month", "Custom branding", "Dedicated support", "SLA guarantee", "Up to 50 devices"],
     cta: "Contact Sales",
     highlighted: true,
   },
@@ -270,10 +259,10 @@ export function TermiVoxedPage() {
             borderRadius="1.75rem"
             containerClassName="h-12"
             className="bg-slate-900/[0.8] px-6"
-            onClick={() => window.location.href = '/termivoxed/app'}
+            onClick={() => window.location.href = '/termivoxed/try'}
           >
             <Play className="w-4 h-4 mr-2" />
-            Try TermiVoxed Free
+            Try Now
           </MovingBorderButton>
           <Button variant="outline" size="lg" className="rounded-full" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
             Learn More
@@ -312,15 +301,9 @@ export function TermiVoxedPage() {
                     </li>
                   ))}
                 </ul>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Link to="/termivoxed/app" className="btn-primary inline-flex items-center justify-center">
-                    <Play className="w-4 h-4 mr-2" />
-                    Try TermiVoxed
-                  </Link>
-                  <Link to="/termivoxed/demo" className="btn-secondary inline-flex items-center justify-center">
-                    Watch Demo
-                  </Link>
-                </div>
+                <Link to="/termivoxed/try" className="btn-primary inline-flex items-center justify-center">
+                  Download App
+                </Link>
               </div>
               <div className="flex-1 flex items-center justify-center p-4">
                 <motion.div
@@ -339,8 +322,40 @@ export function TermiVoxedPage() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-16 md:py-24 px-4">
+      {/* Problem Showcase Section - Sell the Pain Points */}
+      <section id="features" className="py-16 md:py-24 px-4 bg-gradient-to-b from-background/50 to-background overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-6 md:mb-10"
+          >
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm mb-4">
+              The Problem
+            </span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-orange-500">Still Making PPTs?</span>
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Your competitors are shipping cinematic videos. You're clicking through slides.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true }}
+          >
+            <ProblemShowcase />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Features Section - The Solution */}
+      <section className="py-16 md:py-24 px-4">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -349,33 +364,101 @@ export function TermiVoxedPage() {
             viewport={{ once: true }}
             className="text-center mb-10 md:mb-16"
           >
-            <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm mb-4">
-              Features
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm mb-4">
+              The Solution
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
               Powerful <span className="gradient-text">Capabilities</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Everything you need to create professional voice-overs and dubbed content
+              Everything you need to turn screen recordings into professional productions
             </p>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {features.map((feature, index) => (
+          <FeatureShowcase />
+        </div>
+      </section>
+
+      {/* Showcase Section - Visual Feature Demos */}
+      <section className="py-16 md:py-24 px-4 bg-gradient-to-b from-background to-background/50">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-10 md:mb-16"
+          >
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm mb-4">
+              See It In Action
+            </span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
+              Powerful <span className="gradient-text">Interface</span>
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              A professional video editing experience designed for creators
+            </p>
+          </motion.div>
+
+          <div className="space-y-16 md:space-y-24">
+            {showcaseItems.map((item, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                transition={{ duration: 0.6 }}
                 viewport={{ once: true }}
-                whileHover={{ y: -5 }}
-                className="section-card group"
+                className={`grid md:grid-cols-2 gap-8 md:gap-12 items-center ${
+                  index % 2 === 1 ? 'md:flex-row-reverse' : ''
+                }`}
               >
-                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
-                  <feature.icon className="w-7 h-7" />
+                {/* Screenshot/Video Placeholder */}
+                <div className={`relative ${index % 2 === 1 ? 'md:order-2' : ''}`}>
+                  <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800 border border-white/10 shadow-2xl">
+                    {/* Gradient placeholder - replace with actual screenshot */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-600/10" />
+
+                    {/* Placeholder content */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mx-auto mb-4 hover:scale-110 transition-transform cursor-pointer">
+                          <Play className="w-10 h-10 text-white ml-1" />
+                        </div>
+                        <p className="text-white/60 text-sm">Screenshot/Video Coming Soon</p>
+                      </div>
+                    </div>
+
+                    {/* Decorative elements */}
+                    <div className="absolute top-3 left-3 flex gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-red-500/60" />
+                      <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
+                      <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                    </div>
+                  </div>
+
+                  {/* Glow effect */}
+                  <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 to-blue-600/20 blur-3xl -z-10 opacity-50" />
                 </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
+
+                {/* Content */}
+                <div className={index % 2 === 1 ? 'md:order-1' : ''}>
+                  <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+                    {item.title}
+                  </h3>
+                  <p className="text-muted-foreground text-lg mb-6">
+                    {item.description}
+                  </p>
+                  <ul className="space-y-3">
+                    {item.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-full bg-cyan-500/20 flex items-center justify-center">
+                          <Check className="w-3.5 h-3.5 text-cyan-400" />
+                        </div>
+                        <span className="text-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -466,8 +549,8 @@ export function TermiVoxedPage() {
               <h4 className="text-foreground font-semibold mb-4">Products</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link to="/termivoxed/app" className="text-muted-foreground hover:text-primary transition">TermiVoxed Web</Link></li>
-                <li><Link to="/termivoxed/download" className="text-muted-foreground hover:text-primary transition">Windows App</Link></li>
-                <li><Link to="/termivoxed/download" className="text-muted-foreground hover:text-primary transition">macOS App</Link></li>
+                <li><Link to="/termivoxed/try" className="text-muted-foreground hover:text-primary transition">Windows App</Link></li>
+                <li><Link to="/termivoxed/try" className="text-muted-foreground hover:text-primary transition">macOS App</Link></li>
               </ul>
             </div>
             <div>

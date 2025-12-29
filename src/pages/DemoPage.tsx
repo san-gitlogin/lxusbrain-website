@@ -355,13 +355,13 @@ export function DemoPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
-                to="/termivoxed/register"
+                to="/termivoxed/try"
                 className="px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-medium transition-all"
               >
-                Start Free Trial
+                Try Editor Demo
               </Link>
               <Link
-                to="/termivoxed/download"
+                to="/termivoxed/try"
                 className="px-8 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] hover:bg-white/[0.08] text-foreground transition-all"
               >
                 Download App

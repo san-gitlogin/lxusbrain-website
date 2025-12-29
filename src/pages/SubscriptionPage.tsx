@@ -21,13 +21,13 @@ const plans = [
     name: 'Free Trial',
     price: { monthly: 'Free', yearly: 'Free' },
     description: 'Try before you commit',
-    features: ['5 video exports', 'Basic voices', 'Watermark included', 'Email support'],
+    features: ['5 video exports', '320+ AI voices', 'Watermark included', '7-day trial'],
     cta: 'Current Plan'
   },
   {
     id: 'individual',
     name: 'Individual',
-    price: { monthly: 499, yearly: 399 },
+    price: { monthly: 199, yearly: 167 },
     description: 'For creators & freelancers',
     features: ['200 exports/month', 'Premium voices', 'No watermark', 'Priority support', '2 devices'],
     cta: 'Upgrade',
@@ -36,9 +36,9 @@ const plans = [
   {
     id: 'pro',
     name: 'Pro',
-    price: { monthly: 999, yearly: 799 },
+    price: { monthly: 399, yearly: 333 },
     description: 'For professionals',
-    features: ['500 exports/month', 'Voice cloning', 'API access', '24/7 support', '5 devices'],
+    features: ['Unlimited exports', 'Voice cloning', 'API access', '24/7 support', '3 devices'],
     cta: 'Upgrade'
   },
   {
@@ -46,7 +46,7 @@ const plans = [
     name: 'Enterprise',
     price: { monthly: 'Custom', yearly: 'Custom' },
     description: 'For teams & organizations',
-    features: ['2000+ exports/month', 'Custom branding', 'Dedicated support', 'SLA guarantee', 'Unlimited devices'],
+    features: ['2000 exports/month', 'Custom branding', 'Dedicated support', 'SLA guarantee', 'Up to 50 devices'],
     cta: 'Contact Sales',
     highlighted: true
   }

@@ -241,7 +241,7 @@ export function DashboardPage() {
                   </p>
                 </div>
                 <Link
-                  to="/termivoxed/download"
+                  to="/termivoxed/try"
                   className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-sm font-medium transition-all whitespace-nowrap"
                 >
                   Download App

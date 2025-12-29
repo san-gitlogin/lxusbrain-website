@@ -7,7 +7,7 @@ import { LxusBrainLogo, LxusBrainTitle } from '@/components/logos'
 const legalContent = {
   terms: {
     title: 'Terms & Conditions',
-    lastUpdated: 'Dec 26, 2025',
+    lastUpdated: 'Dec 29, 2025',
     sections: [
       {
         title: null,
@@ -51,7 +51,7 @@ const legalContent = {
   },
   privacy: {
     title: 'Privacy Policy',
-    lastUpdated: 'Dec 26, 2025',
+    lastUpdated: 'Dec 29, 2025',
     sections: [
       {
         title: null,
@@ -105,7 +105,7 @@ const legalContent = {
   },
   refund: {
     title: 'Cancellation & Refund Policy',
-    lastUpdated: 'Dec 26, 2025',
+    lastUpdated: 'Dec 29, 2025',
     sections: [
       {
         title: null,
@@ -149,7 +149,7 @@ const legalContent = {
   },
   shipping: {
     title: 'Shipping & Delivery Policy',
-    lastUpdated: 'Dec 26, 2025',
+    lastUpdated: 'Dec 29, 2025',
     sections: [
       {
         title: null,

@@ -21,7 +21,7 @@ interface AuthContextType {
   signInWithMicrosoft: () => Promise<void>
   signInWithEmail: (email: string, password: string) => Promise<void>
   signUpWithEmail: (email: string, password: string, displayName?: string) => Promise<void>
-  resetPassword: (email: string) => Promise<void>
+  resetPassword: (email: string) => Promise<boolean>
   logout: () => Promise<void>
   clearError: () => void
 }
@@ -99,12 +99,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const handleResetPassword = async (email: string) => {
+  const handleResetPassword = async (email: string): Promise<boolean> => {
     try {
       setError(null)
       await resetPassword(email)
+      return true // Success
     } catch (err) {
       setError(getErrorMessage(err))
+      return false // Failed
     }
   }
 
