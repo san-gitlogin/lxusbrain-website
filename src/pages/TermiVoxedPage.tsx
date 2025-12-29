@@ -264,7 +264,7 @@ export function TermiVoxedPage() {
             <Play className="w-4 h-4 mr-2" />
             Try Now
           </MovingBorderButton>
-          <Button variant="outline" size="lg" className="rounded-full" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
+          <Button variant="outline" size="lg" className="rounded-full" onClick={() => document.getElementById('problem')?.scrollIntoView({ behavior: 'smooth' })}>
             Learn More
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
