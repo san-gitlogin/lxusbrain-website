@@ -10,7 +10,36 @@ import * as admin from 'firebase-admin';
 import * as crypto from 'crypto';
 import { razorpayConfig, PLANS } from './config';
 
-const cors = require('cors')({ origin: true });
+// CORS configuration - Only allow specific origins (security fix)
+const allowedOrigins = [
+  'https://lxusbrain.com',
+  'https://www.lxusbrain.com',
+  'https://termivoxed.com',
+  'https://www.termivoxed.com',
+  'https://termivoxed.web.app',
+  'https://termivoxed.firebaseapp.com',
+];
+
+// Add localhost for development
+if (process.env.NODE_ENV !== 'production') {
+  allowedOrigins.push('http://localhost:5173', 'http://localhost:3000');
+}
+
+const cors = require('cors')({
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+});
 
 interface VerifyPaymentRequest {
   razorpay_order_id: string;

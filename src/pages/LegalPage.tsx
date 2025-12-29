@@ -14,6 +14,10 @@ const legalContent = {
         content: `For the purpose of these Terms and Conditions, the term "we", "us", "our" used anywhere on this page shall mean LxusBrain, whose registered/operational office is Aravind Santhosh Illam, Gudiyattam 632602 Gudiyattam South TAMIL NADU 632602. "you", "your", "user", "visitor" shall mean any natural or legal person who is visiting our website and/or agreed to purchase from us.`
       },
       {
+        title: 'Eligibility',
+        content: 'You shall register to become a user of this website only if you are of the age of 18 years or above and can enter into binding contracts as per applicable laws. By using our services, you represent that you meet these eligibility requirements.'
+      },
+      {
         title: 'Your Use of the Website',
         content: 'Your use of the website and/or purchase from us are governed by the following Terms and Conditions:',
         list: [
@@ -44,6 +48,35 @@ const legalContent = {
         ]
       },
       {
+        title: 'Payment Processing',
+        content: 'All payment transactions are processed through Razorpay, a PCI-DSS compliant payment aggregator licensed by the Reserve Bank of India. By making a purchase, you agree to Razorpay\'s terms of service and privacy policy. We do not store your complete credit/debit card details on our servers. Payment information is collected and processed securely by Razorpay.'
+      },
+      {
+        title: 'Prohibited Uses',
+        content: 'You agree not to use our services for any unlawful purpose or in violation of these Terms. Prohibited uses include but are not limited to:',
+        list: [
+          'Creating content that is illegal, harmful, threatening, abusive, defamatory, or violates any law',
+          'Infringing on intellectual property rights of others',
+          'Impersonating any person or entity',
+          'Uploading viruses or malicious code',
+          'Using the service for any fraudulent or deceptive purpose',
+          'Reselling or redistributing our services without authorization',
+          'Circumventing any security measures or access controls'
+        ]
+      },
+      {
+        title: 'Intellectual Property',
+        content: 'All intellectual property rights in the website, software, and services are owned by LxusBrain. You are granted a limited, non-exclusive, non-transferable license to use our services for personal or business purposes as per your subscription. You shall not copy, modify, distribute, sell, or lease any part of our services without our prior written consent.'
+      },
+      {
+        title: 'Limitation of Liability',
+        content: 'To the maximum extent permitted by law, LxusBrain shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly. Our total liability for any claims shall not exceed the amount paid by you for the services in the past 12 months.'
+      },
+      {
+        title: 'Force Majeure',
+        content: 'LxusBrain shall not be liable for any failure or delay in performing its obligations due to circumstances beyond its reasonable control, including but not limited to acts of God, natural disasters, war, terrorism, riots, embargoes, acts of government, epidemics, pandemics, or failures of third-party services.'
+      },
+      {
         title: 'Governing Law',
         content: 'These Terms and Conditions are governed by and construed in accordance with the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts in Tamil Nadu, India.'
       }
@@ -55,51 +88,80 @@ const legalContent = {
     sections: [
       {
         title: null,
-        content: 'This privacy policy sets out how LxusBrain uses and protects any information that you give us when you use this website or our products. We are committed to ensuring that your privacy is protected.'
+        content: 'This privacy policy sets out how LxusBrain uses and protects any information that you give us when you use this website or our products. We are committed to ensuring that your privacy is protected. By visiting this website, you agree and acknowledge to be bound by this Privacy Policy and you hereby consent that we will collect, use, process and share your Personal Information in the manner set out below.'
       },
       {
         title: 'Information We Collect',
-        content: 'We may collect the following information:',
+        content: 'We collect, receive and store your Personal Information. We may collect the following information:',
         list: [
-          'Name and contact information including email address',
+          'Name and contact information including email address and phone number',
           'Demographic information such as preferences and interests',
-          'Other information relevant to customer surveys and/or offers',
-          'Payment information (processed securely through Razorpay)',
-          'Device information for license verification',
-          'Usage data to improve our services'
+          'Payment information (processed securely through Razorpay - we do not store card details)',
+          'Device information including device ID, operating system, and browser type for license verification',
+          'Usage data including IP address, browser type, pages viewed, and timestamps',
+          'Third-party account information if you choose to link accounts',
+          'Any other information you voluntarily provide to us'
         ]
       },
       {
         title: 'How We Use Your Information',
-        content: 'We require this information to understand your needs and provide you with a better service:',
+        content: 'The Personal Information collected will be used only for the purposes identified below:',
         list: [
-          'Internal record keeping',
-          'Improving our products and services',
-          'Sending promotional emails about new products, special offers, or other information',
-          'From time to time, we may also use your information to contact you for market research purposes',
-          'Processing payments and managing subscriptions',
-          'Verifying device licenses and preventing fraud'
+          'Enabling you to use the services provided by us',
+          'Processing payments and managing subscriptions through Razorpay',
+          'Internal record keeping and improving our products and services',
+          'Sending promotional emails about new products, special offers (you can unsubscribe anytime)',
+          'Verifying device licenses and preventing fraud',
+          'Customizing user experience and troubleshooting problems',
+          'Enforcing our terms and conditions',
+          'Complying with legal obligations and regulatory requirements'
+        ]
+      },
+      {
+        title: 'Data Sharing',
+        content: 'We do not sell your Personal Information to third parties. We may share your information with:',
+        list: [
+          'Razorpay (our payment processor) for processing transactions',
+          'Financial institutions such as banks and RBI as required by law',
+          'Law enforcement agencies or government authorities when required by law',
+          'Service providers who assist us in operating our business (under confidentiality agreements)',
+          'Our affiliates and subsidiaries for business purposes'
         ]
       },
       {
         title: 'Security',
-        content: 'We are committed to ensuring that your information is secure. In order to prevent unauthorized access or disclosure, we have put in place suitable physical, electronic, and managerial procedures to safeguard and secure the information we collect online.'
+        content: 'We have implemented reasonable security practices and procedures that are commensurate with the information assets being protected. While we try our best to provide security that is better than industry standards, because of the inherent vulnerabilities of the internet, we cannot ensure or warrant complete security of all information that is being transmitted to us by you. Your account is password protected and you are responsible for maintaining the confidentiality of your credentials.'
       },
       {
         title: 'Payment Processing',
-        content: 'All payment transactions are processed through Razorpay, a PCI-DSS compliant payment gateway. We do not store your complete credit/debit card details on our servers.'
+        content: 'All payment transactions are processed through Razorpay, a PCI-DSS compliant payment aggregator authorized by the Reserve Bank of India. We do not store your complete credit/debit card details on our servers. Your payment information is handled securely by Razorpay in accordance with their privacy policy and security standards.'
       },
       {
         title: 'Cookies',
-        content: 'We use traffic log cookies to identify which pages are being used. This helps us analyze data about web page traffic and improve our website and products. We only use this information for statistical analysis purposes.'
+        content: 'We send cookies to your computer to uniquely identify your browser and improve the quality of our service. We may use both session cookies (which expire once you close your browser) and persistent cookies (which stay on your computer until you delete them). You can disable cookies in your browser settings, but some features of our website may not work properly.'
       },
       {
         title: 'Your Rights',
-        content: 'You may request details of personal information which we hold about you. If you believe that any information we are holding on you is incorrect or incomplete, please contact us and we will promptly correct any information found to be incorrect.'
+        content: 'You have the following rights regarding your personal information:',
+        list: [
+          'Access: You may request details of personal information we hold about you',
+          'Correction: If any information is incorrect or incomplete, please contact us to update it',
+          'Erasure: You may request deletion of your personal information (subject to legal requirements)',
+          'Opt-out: You can unsubscribe from marketing communications at any time',
+          'Data Portability: You may request a copy of your data in a structured format'
+        ]
       },
       {
         title: 'Data Retention',
-        content: 'We retain your personal information for as long as necessary to provide you with our services. We may also retain and use your information as necessary to comply with our legal obligations, resolve disputes, and enforce our agreements.'
+        content: 'We retain your personal information for as long as necessary to provide you with our services and as required by applicable laws. Transaction records may be retained for up to 10 years as per regulatory requirements. After the retention period, your data will be securely deleted or anonymized.'
+      },
+      {
+        title: 'Changes to Privacy Policy',
+        content: 'Our Privacy Policy is subject to change at any time without notice. To make sure you are aware of any changes, please review this policy periodically. Continued use of our services after any changes shall indicate your acknowledgement of such changes.'
+      },
+      {
+        title: 'Grievance Redressal',
+        content: 'If you have any complaints or concerns regarding your personal information or this Privacy Policy, please contact our Grievance Officer at lxusbrain@gmail.com. We will respond to your grievance within 5 business days of receiving your complaint.'
       }
     ]
   },
@@ -109,13 +171,13 @@ const legalContent = {
     sections: [
       {
         title: null,
-        content: 'At LxusBrain, we strive to provide high-quality AI-powered software services. This policy outlines our cancellation and refund procedures.'
+        content: 'At LxusBrain, we strive to provide high-quality AI-powered software services. This policy outlines our cancellation and refund procedures in accordance with applicable laws and payment gateway requirements.'
       },
       {
         title: 'Subscription Cancellation',
         content: 'You can cancel your subscription at any time:',
         list: [
-          'Cancellation can be done through your account settings',
+          'Cancellation can be done through your account settings or by contacting us',
           'Your subscription remains active until the end of the current billing period',
           'No refund is provided for the remaining days of the current billing period',
           'After cancellation, you will retain access to your account data for 30 days'
@@ -133,7 +195,7 @@ const legalContent = {
       },
       {
         title: 'How to Request a Refund',
-        content: 'To request a refund, please contact us at lxusbrain@gmail.com with your account details and reason for the refund request. We will review your request within 5-7 business days.'
+        content: 'To request a refund, please contact us at lxusbrain@gmail.com with your account details, transaction ID, and reason for the refund request. We will review your request and respond within 5-7 business days. Approved refunds will be processed to the original payment method within 5-10 business days.'
       },
       {
         title: 'Non-Refundable Items',
@@ -144,6 +206,20 @@ const legalContent = {
           'Partial month usage',
           'Account termination due to Terms of Service violations'
         ]
+      },
+      {
+        title: 'Chargebacks',
+        content: 'If you initiate a chargeback with your bank or payment provider instead of contacting us for a refund:',
+        list: [
+          'Your account may be suspended pending investigation',
+          'You may be required to provide documentation to support your claim',
+          'If the chargeback is found to be invalid, you may be liable for any fees incurred',
+          'We encourage you to contact us directly at lxusbrain@gmail.com before initiating a chargeback'
+        ]
+      },
+      {
+        title: 'Refund Processing',
+        content: 'All refunds are processed through Razorpay to the same payment method used for the original transaction. The time for the refund to reflect in your account depends on your bank or payment provider, typically 5-10 business days.'
       }
     ]
   },

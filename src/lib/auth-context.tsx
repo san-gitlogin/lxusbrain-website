@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react'
 import {
   auth,
   onAuthStateChanged,
@@ -12,11 +12,18 @@ import {
 } from './firebase'
 import type { User, UserProfile } from './firebase'
 
+// Session timeout configuration (in milliseconds)
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000 // 30 minutes of inactivity
+const SESSION_WARNING_MS = 5 * 60 * 1000  // Show warning 5 minutes before timeout
+const ACTIVITY_CHECK_INTERVAL_MS = 60 * 1000 // Check activity every minute
+
 interface AuthContextType {
   user: User | null
   profile: UserProfile | null
   loading: boolean
   error: string | null
+  sessionExpiresIn: number | null // Seconds until session expires
+  showSessionWarning: boolean
   signInWithGoogle: () => Promise<void>
   signInWithMicrosoft: () => Promise<void>
   signInWithEmail: (email: string, password: string) => Promise<void>
@@ -24,6 +31,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<boolean>
   logout: () => Promise<void>
   clearError: () => void
+  extendSession: () => void
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -33,6 +41,93 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [sessionExpiresIn, setSessionExpiresIn] = useState<number | null>(null)
+  const [showSessionWarning, setShowSessionWarning] = useState(false)
+
+  // Track last activity time
+  const lastActivityRef = useRef<number>(Date.now())
+  const sessionTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const activityCheckRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Update last activity time on user interaction
+  const updateActivity = useCallback(() => {
+    lastActivityRef.current = Date.now()
+    setShowSessionWarning(false)
+    setSessionExpiresIn(null)
+  }, [])
+
+  // Extend session (called when user clicks "Stay logged in" on warning)
+  const extendSession = useCallback(() => {
+    updateActivity()
+  }, [updateActivity])
+
+  // Check for session timeout
+  const checkSessionTimeout = useCallback(async () => {
+    if (!user) return
+
+    const now = Date.now()
+    const timeSinceActivity = now - lastActivityRef.current
+    const timeUntilTimeout = SESSION_TIMEOUT_MS - timeSinceActivity
+
+    if (timeUntilTimeout <= 0) {
+      // Session expired - log out
+      console.log('Session expired due to inactivity')
+      await firebaseLogout()
+      setProfile(null)
+      setShowSessionWarning(false)
+      setSessionExpiresIn(null)
+    } else if (timeUntilTimeout <= SESSION_WARNING_MS) {
+      // Show warning
+      setShowSessionWarning(true)
+      setSessionExpiresIn(Math.ceil(timeUntilTimeout / 1000))
+    } else {
+      setShowSessionWarning(false)
+      setSessionExpiresIn(null)
+    }
+  }, [user])
+
+  // Set up activity listeners
+  useEffect(() => {
+    if (!user) return
+
+    const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove']
+
+    // Throttle activity updates to prevent excessive updates
+    let throttleTimer: NodeJS.Timeout | null = null
+    const throttledUpdateActivity = () => {
+      if (throttleTimer) return
+      throttleTimer = setTimeout(() => {
+        updateActivity()
+        throttleTimer = null
+      }, 1000)
+    }
+
+    // Add event listeners
+    activityEvents.forEach(event => {
+      window.addEventListener(event, throttledUpdateActivity, { passive: true })
+    })
+
+    // Start activity check interval
+    activityCheckRef.current = setInterval(checkSessionTimeout, ACTIVITY_CHECK_INTERVAL_MS)
+
+    // Initial activity update
+    updateActivity()
+
+    return () => {
+      // Clean up event listeners
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, throttledUpdateActivity)
+      })
+
+      // Clear intervals
+      if (activityCheckRef.current) {
+        clearInterval(activityCheckRef.current)
+      }
+      if (throttleTimer) {
+        clearTimeout(throttleTimer)
+      }
+    }
+  }, [user, updateActivity, checkSessionTimeout])
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -41,8 +136,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (user) {
         const userProfile = await getUserProfile(user.uid)
         setProfile(userProfile)
+        // Reset activity on login
+        lastActivityRef.current = Date.now()
       } else {
         setProfile(null)
+        setShowSessionWarning(false)
+        setSessionExpiresIn(null)
       }
 
       setLoading(false)
@@ -129,6 +228,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile,
         loading,
         error,
+        sessionExpiresIn,
+        showSessionWarning,
         signInWithGoogle: handleSignInWithGoogle,
         signInWithMicrosoft: handleSignInWithMicrosoft,
         signInWithEmail: handleSignInWithEmail,
@@ -136,6 +237,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         resetPassword: handleResetPassword,
         logout: handleLogout,
         clearError,
+        extendSession,
       }}
     >
       {children}

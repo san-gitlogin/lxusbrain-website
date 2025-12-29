@@ -1,14 +1,54 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, ArrowLeft, Loader2 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { TermiVoxedLogo } from '@/components/logos'
 
+/**
+ * Validate and sanitize redirect URL to prevent open redirect attacks.
+ * Only allows relative paths starting with allowed prefixes.
+ */
+function getSafeRedirect(redirectParam: string | null): string {
+  const defaultRedirect = '/termivoxed/dashboard'
+
+  if (!redirectParam) {
+    return defaultRedirect
+  }
+
+  // Must be a relative path (starts with /)
+  if (!redirectParam.startsWith('/')) {
+    return defaultRedirect
+  }
+
+  // Block protocol-relative URLs (//evil.com)
+  if (redirectParam.startsWith('//')) {
+    return defaultRedirect
+  }
+
+  // Block URLs containing protocol (javascript:, data:, http:, etc.)
+  if (redirectParam.includes(':')) {
+    return defaultRedirect
+  }
+
+  // Only allow redirects to our app paths
+  const allowedPrefixes = ['/termivoxed/', '/app/', '/dashboard']
+  const isAllowed = allowedPrefixes.some(prefix => redirectParam.startsWith(prefix))
+
+  if (!isAllowed) {
+    return defaultRedirect
+  }
+
+  return redirectParam
+}
+
 export function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const redirect = searchParams.get('redirect') || '/termivoxed/dashboard'
+  const redirect = useMemo(
+    () => getSafeRedirect(searchParams.get('redirect')),
+    [searchParams]
+  )
   const { user, signInWithGoogle, signInWithMicrosoft, signInWithEmail, error, loading, clearError } = useAuth()
 
   // Redirect if already logged in or after successful login
