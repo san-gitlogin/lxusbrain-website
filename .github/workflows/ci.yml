@@ -50,11 +50,9 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
-        continue-on-error: true  # TODO: Fix lint errors and remove this
 
       - name: TypeScript type check
         run: npx tsc --noEmit
-        continue-on-error: true  # TODO: Fix type errors and remove this
 
   # ============================================================================
   # Job 2: Build
@@ -186,7 +184,10 @@ jobs:
     steps:
       - name: Check all jobs passed
         run: |
-          # Only build is required to pass (lint has continue-on-error)
+          if [[ "${{ needs.lint.result }}" == "failure" ]]; then
+            echo "Lint job failed"
+            exit 1
+          fi
           if [[ "${{ needs.build.result }}" == "failure" ]]; then
             echo "Build job failed"
             exit 1
