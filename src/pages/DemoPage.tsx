@@ -13,8 +13,7 @@ import {
   ArrowLeft,
   ChevronRight,
   ChevronLeft,
-  Check,
-  X
+  Check
 } from 'lucide-react'
 import { LxusBrainLogo, LxusBrainTitle, TermiVoxedLogo } from '@/components/logos'
 import { BeamsBackground } from '@/components/ui/beams-background'

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Rocket, ArrowLeft, Sparkles, Loader2, User } from 'lucide-react'
+import { Rocket, ArrowLeft, Sparkles, Loader2 } from 'lucide-react'
 
 import { LxusBrainLogo, LxusBrainTitle, TermiVoxedLogo } from '@/components/logos'
 import { useAuth } from '@/lib/auth-context'

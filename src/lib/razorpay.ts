@@ -240,7 +240,7 @@ export async function initiatePayment(
         } else {
           callbacks.onError(verifyResponse.error || 'Payment verification failed');
         }
-      } catch (error) {
+      } catch {
         callbacks.onError('Payment verification failed. Please contact support.');
       }
     },

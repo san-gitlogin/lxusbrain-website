@@ -11,7 +11,7 @@ export function GetStartedPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const plan = searchParams.get('plan') || 'individual'
-  const { user, profile, loading, signInWithGoogle, signInWithMicrosoft, error } = useAuth()
+  const { user, loading, signInWithGoogle, signInWithMicrosoft, error } = useAuth()
 
   const [formData, setFormData] = useState({
     name: '',

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Download, Monitor, Apple, ArrowLeft, Clock, CheckCircle, User } from 'lucide-react'
 
 import { LxusBrainLogo, LxusBrainTitle, TermiVoxedLogo } from '@/components/logos'
@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth-context'
 
 export function DownloadPage() {
-  const navigate = useNavigate()
   const { user, loading, signInWithGoogle, signInWithMicrosoft, error } = useAuth()
 
   return (

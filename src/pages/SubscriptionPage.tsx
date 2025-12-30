@@ -16,7 +16,7 @@ import {
   RefreshCcw
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
-import { initiatePayment, cancelSubscription, type PlanId, type BillingPeriod, type SubscriptionStatus } from '@/lib/razorpay'
+import { initiatePayment, cancelSubscription, type PlanId, type BillingPeriod } from '@/lib/razorpay'
 import { TermiVoxedLogo, LxusBrainLogo } from '@/components/logos'
 import { BeamsBackground } from '@/components/ui/beams-background'
 import { GlowingEffect } from '@/components/ui/glowing-effect'

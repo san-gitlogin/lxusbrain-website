@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Track last activity time
   const lastActivityRef = useRef<number>(Date.now())
-  const sessionTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const _sessionTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const activityCheckRef = useRef<NodeJS.Timeout | null>(null)
 
   // Update last activity time on user interaction

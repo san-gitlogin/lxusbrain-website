@@ -1,7 +1,7 @@
 import type React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion"
-import { Clock, Presentation, Mic, Video, Sparkles, Users, BookOpen, Megaphone } from "lucide-react"
+import { Presentation, Mic, Video, Sparkles, Users, BookOpen, Megaphone } from "lucide-react"
 
 interface ProblemScenario {
   icon: React.ElementType
