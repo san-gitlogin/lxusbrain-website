@@ -50,12 +50,12 @@ export const PLANS = {
     monthly: {
       amount: 19900, // Amount in paise (₹199)
       currency: 'INR',
-      razorpay_plan_id: process.env.RAZORPAY_PLAN_INDIVIDUAL_MONTHLY || '',
+      razorpay_plan_id: process.env.RAZORPAY_PLAN_INDIVIDUAL_MONTHLY || 'plan_RyKRBwY9cpeDxq',
     },
     yearly: {
       amount: 200400, // ₹167 * 12 = ₹2004
       currency: 'INR',
-      razorpay_plan_id: process.env.RAZORPAY_PLAN_INDIVIDUAL_YEARLY || '',
+      razorpay_plan_id: process.env.RAZORPAY_PLAN_INDIVIDUAL_YEARLY || 'plan_RyKSNpXx4eJQKq',
     },
     features: {
       exports_per_month: 200,
@@ -71,12 +71,12 @@ export const PLANS = {
     monthly: {
       amount: 39900, // ₹399
       currency: 'INR',
-      razorpay_plan_id: process.env.RAZORPAY_PLAN_PRO_MONTHLY || '',
+      razorpay_plan_id: process.env.RAZORPAY_PLAN_PRO_MONTHLY || 'plan_RyKT7aXL8NDQPF',
     },
     yearly: {
       amount: 399600, // ₹333 * 12 = ₹3996
       currency: 'INR',
-      razorpay_plan_id: process.env.RAZORPAY_PLAN_PRO_YEARLY || '',
+      razorpay_plan_id: process.env.RAZORPAY_PLAN_PRO_YEARLY || 'plan_RyKTcZY7W7WtqL',
     },
     features: {
       exports_per_month: -1, // Unlimited

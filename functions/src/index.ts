@@ -10,7 +10,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as crypto from 'crypto';
-import { razorpayConfig, validateConfig, PLANS, PlanId, BillingPeriod } from './config';
+import { razorpayConfig, validateConfig, PLANS, PlanId, BillingPeriod, getTierConfig, planIdToTierName } from './config';
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -369,7 +369,11 @@ export const verifyPayment = functions.https.onRequest((req, res) => {
       // Use batch write for atomic operations to prevent race conditions
       const batch = db.batch();
 
-      // Update user subscription
+      // Get tier config for this plan (for termivoxed compatibility)
+      const tierConfig = getTierConfig(planId);
+      const tierName = planIdToTierName(planId);
+
+      // Update user subscription (lxusbrain format - for website)
       const userRef = db.collection('users').doc(decodedToken.uid);
       batch.update(userRef, {
         plan: planId,
@@ -379,6 +383,50 @@ export const verifyPayment = functions.https.onRequest((req, res) => {
         subscription_expires_at: admin.firestore.Timestamp.fromDate(expiresAt),
         billing_period: billingPeriod,
       });
+
+      // CRITICAL: Also write to subscriptions/{uid} collection (termivoxed format - for app)
+      // This ensures the termivoxed app can read subscription data correctly
+      const subscriptionRef = db.collection('subscriptions').doc(decodedToken.uid);
+      batch.set(subscriptionRef, {
+        // Tier identification
+        tier: tierName.toLowerCase(),
+        status: 'active',
+        source: 'lxusbrain_razorpay', // Discriminator to identify payment source
+
+        // Dates
+        startedAt: admin.firestore.FieldValue.serverTimestamp(),
+        expiresAt: admin.firestore.Timestamp.fromDate(expiresAt),
+        billingPeriod: billingPeriod,
+
+        // Payment references
+        razorpayPaymentId: razorpay_payment_id,
+        razorpayOrderId: razorpay_order_id,
+
+        // Usage limits (from TIER_CONFIG for termivoxed compatibility)
+        usageLimits: {
+          maxExportsPerMonth: tierConfig.maxExportsPerMonth,
+          maxTtsMinutesPerMonth: tierConfig.maxTtsMinutesPerMonth,
+          maxAiGenerationsPerMonth: tierConfig.maxAiGenerationsPerMonth,
+          maxVoiceCloningsPerMonth: tierConfig.maxVoiceCloningsPerMonth,
+          maxVideoDurationMinutes: tierConfig.maxVideoDurationMinutes,
+          maxDevices: tierConfig.maxDevices,
+        },
+
+        // Features (from TIER_CONFIG)
+        features: tierConfig.features,
+
+        // Usage tracking (initialize to 0)
+        usageThisMonth: {
+          exportsCount: 0,
+          ttsMinutes: 0,
+          aiGenerations: 0,
+          voiceClonings: 0,
+        },
+
+        // Metadata
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        lastSyncSource: 'verifyPayment',
+      }, { merge: true }); // Use merge to preserve any existing usage data
 
       // Update order status
       const orderRef = db.collection('orders').doc(razorpay_order_id);
@@ -635,7 +683,12 @@ async function handleSubscriptionActivated(payload: any) {
   }
 
   const planId = subscription.notes?.planId || 'individual';
+  const billingPeriod = subscription.notes?.billingPeriod || 'monthly';
   const currentEnd = new Date(subscription.current_end * 1000);
+
+  // Get tier config for termivoxed compatibility
+  const tierConfig = getTierConfig(planId);
+  const tierName = planIdToTierName(planId);
 
   console.log('Subscription activated:', {
     subscriptionId: subscription.id,
@@ -643,14 +696,48 @@ async function handleSubscriptionActivated(payload: any) {
     planId: planId,
   });
 
-  // Update user subscription
-  await db.collection('users').doc(uid).update({
+  const batch = db.batch();
+
+  // Update user subscription (lxusbrain format)
+  const userRef = db.collection('users').doc(uid);
+  batch.update(userRef, {
     plan: planId,
     planStatus: 'active',
     razorpay_subscription_id: subscription.id,
     subscription_expires_at: admin.firestore.Timestamp.fromDate(currentEnd),
     subscription_started_at: admin.firestore.FieldValue.serverTimestamp(),
   });
+
+  // CRITICAL: Also write to subscriptions/{uid} (termivoxed format)
+  const subscriptionRef = db.collection('subscriptions').doc(uid);
+  batch.set(subscriptionRef, {
+    tier: tierName.toLowerCase(),
+    status: 'active',
+    source: 'lxusbrain_razorpay',
+    startedAt: admin.firestore.FieldValue.serverTimestamp(),
+    expiresAt: admin.firestore.Timestamp.fromDate(currentEnd),
+    billingPeriod: billingPeriod,
+    razorpaySubscriptionId: subscription.id,
+    usageLimits: {
+      maxExportsPerMonth: tierConfig.maxExportsPerMonth,
+      maxTtsMinutesPerMonth: tierConfig.maxTtsMinutesPerMonth,
+      maxAiGenerationsPerMonth: tierConfig.maxAiGenerationsPerMonth,
+      maxVoiceCloningsPerMonth: tierConfig.maxVoiceCloningsPerMonth,
+      maxVideoDurationMinutes: tierConfig.maxVideoDurationMinutes,
+      maxDevices: tierConfig.maxDevices,
+    },
+    features: tierConfig.features,
+    usageThisMonth: {
+      exportsCount: 0,
+      ttsMinutes: 0,
+      aiGenerations: 0,
+      voiceClonings: 0,
+    },
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    lastSyncSource: 'webhook_subscription_activated',
+  }, { merge: true });
+
+  await batch.commit();
 }
 
 /**
@@ -668,6 +755,10 @@ async function handleSubscriptionCharged(payload: any) {
   const billingPeriod = subscription.notes?.billingPeriod || 'monthly';
   const currentEnd = new Date(subscription.current_end * 1000);
   const now = new Date();
+
+  // Get tier config for termivoxed compatibility
+  const tierConfig = getTierConfig(planId);
+  const tierName = planIdToTierName(planId);
 
   console.log('Subscription charged:', {
     subscriptionId: subscription.id,
@@ -692,11 +783,46 @@ async function handleSubscriptionCharged(payload: any) {
   const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
   const invoiceNumber = `TV-${dateStr}-${randomSuffix}`;
 
-  // Extend subscription
-  await db.collection('users').doc(uid).update({
+  const batch = db.batch();
+
+  // Extend subscription (lxusbrain format)
+  const userRef = db.collection('users').doc(uid);
+  batch.update(userRef, {
     planStatus: 'active',
     subscription_expires_at: admin.firestore.Timestamp.fromDate(currentEnd),
   });
+
+  // CRITICAL: Also update subscriptions/{uid} (termivoxed format)
+  // Reset usage counters on renewal
+  const subscriptionRef = db.collection('subscriptions').doc(uid);
+  batch.set(subscriptionRef, {
+    tier: tierName.toLowerCase(),
+    status: 'active',
+    source: 'lxusbrain_razorpay',
+    expiresAt: admin.firestore.Timestamp.fromDate(currentEnd),
+    billingPeriod: billingPeriod,
+    razorpaySubscriptionId: subscription.id,
+    usageLimits: {
+      maxExportsPerMonth: tierConfig.maxExportsPerMonth,
+      maxTtsMinutesPerMonth: tierConfig.maxTtsMinutesPerMonth,
+      maxAiGenerationsPerMonth: tierConfig.maxAiGenerationsPerMonth,
+      maxVoiceCloningsPerMonth: tierConfig.maxVoiceCloningsPerMonth,
+      maxVideoDurationMinutes: tierConfig.maxVideoDurationMinutes,
+      maxDevices: tierConfig.maxDevices,
+    },
+    features: tierConfig.features,
+    // Reset usage on renewal
+    usageThisMonth: {
+      exportsCount: 0,
+      ttsMinutes: 0,
+      aiGenerations: 0,
+      voiceClonings: 0,
+    },
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    lastSyncSource: 'webhook_subscription_charged',
+  }, { merge: true });
+
+  await batch.commit();
 
   // Record payment with complete invoice data
   await db.collection('users').doc(uid).collection('payments').add({
@@ -756,11 +882,25 @@ async function handleSubscriptionCancelled(payload: any) {
     uid: uid,
   });
 
-  // Mark subscription as cancelled (still active until period ends)
-  await db.collection('users').doc(uid).update({
+  const batch = db.batch();
+
+  // Mark subscription as cancelled (lxusbrain format - still active until period ends)
+  const userRef = db.collection('users').doc(uid);
+  batch.update(userRef, {
     planStatus: 'cancelled',
     subscription_cancelled_at: admin.firestore.FieldValue.serverTimestamp(),
   });
+
+  // CRITICAL: Also update subscriptions/{uid} (termivoxed format)
+  const subscriptionRef = db.collection('subscriptions').doc(uid);
+  batch.update(subscriptionRef, {
+    status: 'cancelled',
+    cancelledAt: admin.firestore.FieldValue.serverTimestamp(),
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    lastSyncSource: 'webhook_subscription_cancelled',
+  });
+
+  await batch.commit();
 }
 
 /**
@@ -778,10 +918,23 @@ async function handleSubscriptionHalted(payload: any) {
     uid: uid,
   });
 
-  // Mark as payment failed
-  await db.collection('users').doc(uid).update({
+  const batch = db.batch();
+
+  // Mark as payment failed (lxusbrain format)
+  const userRef = db.collection('users').doc(uid);
+  batch.update(userRef, {
     planStatus: 'payment_failed',
   });
+
+  // CRITICAL: Also update subscriptions/{uid} (termivoxed format)
+  const subscriptionRef = db.collection('subscriptions').doc(uid);
+  batch.update(subscriptionRef, {
+    status: 'past_due',
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    lastSyncSource: 'webhook_subscription_halted',
+  });
+
+  await batch.commit();
 }
 
 /**
@@ -933,18 +1086,27 @@ export const cancelSubscription = functions.https.onRequest((req, res) => {
       // Use batch write for atomic operations
       const batch = db.batch();
 
-      // Update user record
+      // Update user record (lxusbrain format)
       const userRef = db.collection('users').doc(decodedToken.uid);
       batch.update(userRef, {
         planStatus: 'cancelled',
         subscription_cancelled_at: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      // Update subscription record
+      // Update subscription record by Razorpay subscription ID
       const subRef = db.collection('subscriptions').doc(subscriptionId);
       batch.update(subRef, {
         status: 'cancelled',
         cancelledAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      // CRITICAL: Also update subscriptions/{uid} (termivoxed format)
+      const userSubRef = db.collection('subscriptions').doc(decodedToken.uid);
+      batch.update(userSubRef, {
+        status: 'cancelled',
+        cancelledAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        lastSyncSource: 'cancelSubscription_api',
       });
 
       await batch.commit();
