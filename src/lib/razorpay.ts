@@ -11,7 +11,7 @@ const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || '';
 
 // Cloud Functions URLs
 const FUNCTIONS_BASE_URL = import.meta.env.VITE_FIREBASE_FUNCTIONS_URL ||
-  'https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net';
+  'https://us-central1-termivoxed.cloudfunctions.net';
 
 declare global {
   interface Window {
