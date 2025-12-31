@@ -13,10 +13,15 @@ import {
   Shield,
   AlertTriangle,
   Calendar,
-  RefreshCcw
+  RefreshCcw,
+  Download,
+  Receipt
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { initiatePayment, cancelSubscription, type PlanId, type BillingPeriod } from '@/lib/razorpay'
+import { printInvoice, type InvoiceData } from '@/components/Invoice'
+import { db } from '@/lib/firebase'
+import { collection, query, orderBy, getDocs, limit } from 'firebase/firestore'
 import { TermiVoxedLogo, LxusBrainLogo } from '@/components/logos'
 import { BeamsBackground } from '@/components/ui/beams-background'
 import { GlowingEffect } from '@/components/ui/glowing-effect'
@@ -63,6 +68,31 @@ const plans = [
 type PaymentStatus = 'idle' | 'loading' | 'success' | 'error'
 type CancelStatus = 'idle' | 'confirming' | 'cancelling' | 'success' | 'error'
 
+// Payment record from Firestore
+interface PaymentRecord {
+  id: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  orderId: string;
+  paymentId: string;
+  planName: string;
+  billingPeriod: 'monthly' | 'yearly';
+  amountRupees: number;
+  currency: string;
+  currencySymbol: string;
+  customerName: string;
+  customerEmail: string;
+  subscriptionStart: string;
+  subscriptionEnd: string;
+  lineItems: Array<{
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+  }>;
+  status: string;
+}
+
 export function SubscriptionPage() {
   const navigate = useNavigate()
   const { user, profile, loading } = useAuth()
@@ -73,11 +103,100 @@ export function SubscriptionPage() {
   const [cancelStatus, setCancelStatus] = useState<CancelStatus>('idle')
   const [cancelMessage, setCancelMessage] = useState('')
 
+  // Billing history state
+  const [billingHistory, setBillingHistory] = useState<PaymentRecord[]>([])
+  const [billingLoading, setBillingLoading] = useState(true)
+
   useEffect(() => {
     if (!loading && !user) {
       navigate('/termivoxed/login')
     }
   }, [user, loading, navigate])
+
+  // Fetch billing history
+  useEffect(() => {
+    async function fetchBillingHistory() {
+      if (!user) {
+        setBillingLoading(false)
+        return
+      }
+
+      try {
+        const paymentsRef = collection(db, 'users', user.uid, 'payments')
+        const q = query(paymentsRef, orderBy('createdAt', 'desc'), limit(10))
+        const snapshot = await getDocs(q)
+
+        const payments: PaymentRecord[] = []
+        snapshot.forEach((doc) => {
+          const data = doc.data()
+          // Handle both old and new payment record formats
+          payments.push({
+            id: doc.id,
+            invoiceNumber: data.invoiceNumber || `TV-${doc.id.slice(0, 8).toUpperCase()}`,
+            invoiceDate: data.invoiceDate || data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            orderId: data.orderId || '',
+            paymentId: data.paymentId || '',
+            planName: data.planName || data.planId || 'Unknown',
+            billingPeriod: data.billingPeriod || 'monthly',
+            amountRupees: data.amountRupees ?? (data.amount ? data.amount / 100 : 0),
+            currency: data.currency || 'INR',
+            currencySymbol: data.currencySymbol || '₹',
+            customerName: data.customerName || user.displayName || user.email?.split('@')[0] || 'Customer',
+            customerEmail: data.customerEmail || user.email || '',
+            subscriptionStart: data.subscriptionStart || data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            subscriptionEnd: data.subscriptionEnd || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            lineItems: data.lineItems || [{
+              description: `${data.planName || data.planId || 'Subscription'} Plan - ${data.billingPeriod === 'yearly' ? 'Annual' : 'Monthly'}`,
+              quantity: 1,
+              unitPrice: data.amountRupees ?? (data.amount ? data.amount / 100 : 0),
+              total: data.amountRupees ?? (data.amount ? data.amount / 100 : 0),
+            }],
+            status: data.status || 'paid',
+          })
+        })
+
+        setBillingHistory(payments)
+      } catch (error) {
+        console.error('Error fetching billing history:', error)
+      } finally {
+        setBillingLoading(false)
+      }
+    }
+
+    fetchBillingHistory()
+  }, [user])
+
+  // Handle invoice download
+  const handleDownloadInvoice = (payment: PaymentRecord) => {
+    const invoiceData: InvoiceData = {
+      invoiceNumber: payment.invoiceNumber,
+      invoiceDate: payment.invoiceDate,
+      orderId: payment.orderId,
+      paymentId: payment.paymentId,
+      planName: payment.planName,
+      billingPeriod: payment.billingPeriod,
+      amountRupees: payment.amountRupees,
+      currency: payment.currency,
+      currencySymbol: payment.currencySymbol,
+      customerName: payment.customerName,
+      customerEmail: payment.customerEmail,
+      subscriptionStart: payment.subscriptionStart,
+      subscriptionEnd: payment.subscriptionEnd,
+      lineItems: payment.lineItems,
+      status: payment.status,
+    }
+    printInvoice(invoiceData)
+  }
+
+  // Format currency
+  const formatCurrency = (amount: number, symbol: string = '₹'): string => {
+    return `${symbol}${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  }
+
+  // Format date
+  const formatDate = (isoDate: string): string => {
+    return new Date(isoDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
 
   const handleCancelSubscription = async () => {
     setCancelStatus('cancelling')
@@ -600,13 +719,58 @@ export function SubscriptionPage() {
               animate="visible"
               className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.08]"
             >
-              <h2 className="text-lg font-semibold text-foreground mb-4">Billing History</h2>
-              <div className="text-center py-6">
-                <p className="text-muted-foreground mb-2">No billing history yet</p>
-                <p className="text-sm text-muted-foreground/60">
-                  Your invoices will appear here after your first payment
-                </p>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-foreground">Billing History</h2>
+                <Receipt className="w-5 h-5 text-muted-foreground" />
               </div>
+
+              {billingLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
+                </div>
+              ) : billingHistory.length === 0 ? (
+                <div className="text-center py-6">
+                  <p className="text-muted-foreground mb-2">No billing history yet</p>
+                  <p className="text-sm text-muted-foreground/60">
+                    Your invoices will appear here after your first payment
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                  {billingHistory.map((payment) => (
+                    <div
+                      key={payment.id}
+                      className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05] hover:border-white/[0.1] transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-foreground truncate">
+                            {payment.planName} Plan
+                          </span>
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 capitalize">
+                            {payment.status}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                          <span>{formatDate(payment.invoiceDate)}</span>
+                          <span>•</span>
+                          <span className="font-medium text-foreground">
+                            {formatCurrency(payment.amountRupees, payment.currencySymbol)}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDownloadInvoice(payment)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 rounded-md transition-colors"
+                        title="Download Invoice"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Invoice
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
 
             {/* Payment info */}

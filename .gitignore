@@ -25,6 +25,12 @@ dist-ssr
 **/serviceAccountKey*.json
 firebase-service-account.json
 
+# Firebase Functions compiled output
+functions/lib/
+
+# Test coverage
+functions/coverage/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

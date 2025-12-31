@@ -33,8 +33,83 @@ function getRazorpay() {
 // Validate config on cold start
 validateConfig();
 
-// CORS configuration - Only allow specific origins
-const allowedOrigins = [
+// ============================================
+// RATE LIMITING (Cost Protection)
+// ============================================
+interface RateLimitConfig {
+  maxRequests: number;  // Max requests allowed
+  windowMs: number;     // Time window in milliseconds
+}
+
+const RATE_LIMITS: Record<string, RateLimitConfig> = {
+  createOrder: { maxRequests: 10, windowMs: 60 * 60 * 1000 },      // 10 orders per hour
+  createSubscription: { maxRequests: 5, windowMs: 60 * 60 * 1000 }, // 5 subscriptions per hour
+  deleteAccount: { maxRequests: 1, windowMs: 24 * 60 * 60 * 1000 }, // 1 per day
+  exportUserData: { maxRequests: 5, windowMs: 60 * 60 * 1000 },     // 5 exports per hour
+};
+
+/**
+ * Check rate limit for a user on a specific endpoint
+ * Returns true if allowed, false if rate limited
+ */
+async function checkRateLimit(uid: string, endpoint: string): Promise<boolean> {
+  const config = RATE_LIMITS[endpoint];
+  if (!config) return true; // No rate limit configured
+
+  const now = Date.now();
+  const windowStart = now - config.windowMs;
+  const rateLimitRef = db.collection('rate_limits').doc(`${uid}_${endpoint}`);
+
+  try {
+    const doc = await rateLimitRef.get();
+    const data = doc.data();
+
+    if (!data) {
+      // First request
+      await rateLimitRef.set({
+        count: 1,
+        firstRequestAt: now,
+        updatedAt: now,
+      });
+      return true;
+    }
+
+    // Check if window has expired
+    if (data.firstRequestAt < windowStart) {
+      // Reset the window
+      await rateLimitRef.set({
+        count: 1,
+        firstRequestAt: now,
+        updatedAt: now,
+      });
+      return true;
+    }
+
+    // Check if under limit
+    if (data.count < config.maxRequests) {
+      await rateLimitRef.update({
+        count: admin.firestore.FieldValue.increment(1),
+        updatedAt: now,
+      });
+      return true;
+    }
+
+    // Rate limited
+    console.warn(`Rate limit exceeded for user ${uid} on ${endpoint}`);
+    return false;
+
+  } catch (error) {
+    console.error('Rate limit check error:', error);
+    // Allow request on error (fail open, but log it)
+    return true;
+  }
+}
+
+// ============================================
+// CORS CONFIGURATION
+// ============================================
+// Production origins - these are always allowed
+const PRODUCTION_ORIGINS = [
   'https://lxusbrain.com',
   'https://www.lxusbrain.com',
   'https://termivoxed.com',
@@ -43,10 +118,34 @@ const allowedOrigins = [
   'https://termivoxed.firebaseapp.com',
 ];
 
-// Add localhost for development
-if (process.env.NODE_ENV !== 'production') {
-  allowedOrigins.push('http://localhost:5173', 'http://localhost:3000');
+/**
+ * Check if origin is allowed
+ * More secure than static list - validates dynamically
+ */
+function isOriginAllowed(origin: string | undefined): boolean {
+  // Allow requests with no origin (server-to-server, mobile apps)
+  if (!origin) return true;
+
+  // Always allow production origins
+  if (PRODUCTION_ORIGINS.includes(origin)) return true;
+
+  // Check for localhost ONLY in development mode
+  const env = functions.config().app?.environment;
+  if (env === 'development') {
+    // Validate localhost pattern strictly
+    const localhostPattern = /^http:\/\/localhost:\d{4,5}$/;
+    if (localhostPattern.test(origin)) {
+      console.log(`CORS: Allowing localhost origin in development: ${origin}`);
+      return true;
+    }
+  }
+
+  return false;
 }
+
+// Log CORS configuration on cold start (without exposing sensitive details)
+const currentEnv = functions.config().app?.environment || 'production';
+console.log(`CORS: Environment=${currentEnv}, Production origins=${PRODUCTION_ORIGINS.length}`);
 
 // Type-safe CORS middleware wrapper
 type CorsCallback = (
@@ -57,14 +156,10 @@ type CorsCallback = (
 
 const corsHandler: CorsCallback = require('cors')({
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) {
-      callback(null, true);
-      return;
-    }
-    if (allowedOrigins.includes(origin)) {
+    if (isOriginAllowed(origin)) {
       callback(null, true);
     } else {
+      console.warn(`CORS: Blocked request from origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -106,7 +201,17 @@ async function verifyAuth(req: functions.https.Request): Promise<admin.auth.Deco
  */
 export const createOrder = functions.https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
+    // Handle CORS preflight
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
     // Only allow POST
+    // Handle CORS preflight
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
     if (req.method !== 'POST') {
       res.status(405).json({ success: false, error: 'Method not allowed' });
       return;
@@ -117,6 +222,13 @@ export const createOrder = functions.https.onRequest((req, res) => {
       const decodedToken = await verifyAuth(req);
       if (!decodedToken) {
         res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
+
+      // Rate limiting - prevent abuse
+      const allowed = await checkRateLimit(decodedToken.uid, 'createOrder');
+      if (!allowed) {
+        res.status(429).json({ success: false, error: 'Too many requests. Please try again later.' });
         return;
       }
 
@@ -188,6 +300,11 @@ export const createOrder = functions.https.onRequest((req, res) => {
  */
 export const verifyPayment = functions.https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
+    // Handle CORS preflight
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
     if (req.method !== 'POST') {
       res.status(405).json({ success: false, error: 'Method not allowed' });
       return;
@@ -271,16 +388,57 @@ export const verifyPayment = functions.https.onRequest((req, res) => {
         paidAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      // Create payment record
+      // Generate invoice number (TV-YYYYMMDD-XXXX format)
+      const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+      const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const invoiceNumber = `TV-${dateStr}-${randomSuffix}`;
+
+      // Get user details for invoice
+      const userDoc = await db.collection('users').doc(decodedToken.uid).get();
+      const userData = userDoc.data() || {};
+
+      // Calculate amounts for invoice
+      const amountInPaise = orderData.amount;
+      const amountInRupees = amountInPaise / 100;
+
+      // Create payment record with complete invoice data
       const paymentRef = db.collection('users').doc(decodedToken.uid).collection('payments').doc();
       batch.set(paymentRef, {
+        // Payment identifiers
+        invoiceNumber: invoiceNumber,
         orderId: razorpay_order_id,
         paymentId: razorpay_payment_id,
+
+        // Plan details
         planId: planId,
+        planName: plan.name,
         billingPeriod: billingPeriod,
-        amount: orderData.amount,
+
+        // Amount details (store both paise and rupees for convenience)
+        amountPaise: amountInPaise,
+        amountRupees: amountInRupees,
         currency: orderData.currency,
-        status: 'captured',
+        currencySymbol: orderData.currency === 'INR' ? '₹' : orderData.currency,
+
+        // Line item for invoice
+        lineItems: [{
+          description: `${plan.name} Plan - ${billingPeriod === 'yearly' ? 'Annual' : 'Monthly'} Subscription`,
+          quantity: 1,
+          unitPrice: amountInRupees,
+          total: amountInRupees,
+        }],
+
+        // Customer details (for invoice)
+        customerName: userData.displayName || userData.email?.split('@')[0] || 'Customer',
+        customerEmail: userData.email || decodedToken.email || '',
+
+        // Dates
+        invoiceDate: now.toISOString(),
+        subscriptionStart: now.toISOString(),
+        subscriptionEnd: expiresAt.toISOString(),
+
+        // Status
+        status: 'paid',
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
@@ -500,12 +658,16 @@ async function handleSubscriptionActivated(payload: any) {
  */
 async function handleSubscriptionCharged(payload: any) {
   const subscription = payload.subscription?.entity;
+  const payment = payload.payment?.entity;
   if (!subscription) return;
 
   const uid = subscription.notes?.firebase_uid;
   if (!uid) return;
 
+  const planId = subscription.notes?.planId || 'individual';
+  const billingPeriod = subscription.notes?.billingPeriod || 'monthly';
   const currentEnd = new Date(subscription.current_end * 1000);
+  const now = new Date();
 
   console.log('Subscription charged:', {
     subscriptionId: subscription.id,
@@ -513,17 +675,68 @@ async function handleSubscriptionCharged(payload: any) {
     nextBilling: currentEnd,
   });
 
+  // Get user data for invoice
+  const userDoc = await db.collection('users').doc(uid).get();
+  const userData = userDoc.data() || {};
+
+  // Get plan details
+  const plan = PLANS[planId as PlanId] || PLANS.individual;
+  const pricing = plan[billingPeriod as BillingPeriod] || plan.monthly;
+
+  // Calculate amounts
+  const amountInPaise = payment?.amount || pricing.amount;
+  const amountInRupees = amountInPaise / 100;
+
+  // Generate invoice number
+  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+  const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const invoiceNumber = `TV-${dateStr}-${randomSuffix}`;
+
   // Extend subscription
   await db.collection('users').doc(uid).update({
     planStatus: 'active',
     subscription_expires_at: admin.firestore.Timestamp.fromDate(currentEnd),
   });
 
-  // Record payment
+  // Record payment with complete invoice data
   await db.collection('users').doc(uid).collection('payments').add({
+    // Payment identifiers
+    invoiceNumber: invoiceNumber,
     type: 'subscription_renewal',
     subscriptionId: subscription.id,
-    status: 'captured',
+    paymentId: payment?.id || '',
+    orderId: payment?.order_id || '',
+
+    // Plan details
+    planId: planId,
+    planName: plan.name,
+    billingPeriod: billingPeriod,
+
+    // Amount details
+    amountPaise: amountInPaise,
+    amountRupees: amountInRupees,
+    currency: pricing.currency,
+    currencySymbol: pricing.currency === 'INR' ? '₹' : pricing.currency,
+
+    // Line item for invoice
+    lineItems: [{
+      description: `${plan.name} Plan - ${billingPeriod === 'yearly' ? 'Annual' : 'Monthly'} Renewal`,
+      quantity: 1,
+      unitPrice: amountInRupees,
+      total: amountInRupees,
+    }],
+
+    // Customer details
+    customerName: userData.displayName || userData.email?.split('@')[0] || 'Customer',
+    customerEmail: userData.email || '',
+
+    // Dates
+    invoiceDate: now.toISOString(),
+    subscriptionStart: now.toISOString(),
+    subscriptionEnd: currentEnd.toISOString(),
+
+    // Status
+    status: 'paid',
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
   });
 }
@@ -578,6 +791,11 @@ async function handleSubscriptionHalted(payload: any) {
  */
 export const createSubscription = functions.https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
+    // Handle CORS preflight
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
     if (req.method !== 'POST') {
       res.status(405).json({ success: false, error: 'Method not allowed' });
       return;
@@ -587,6 +805,13 @@ export const createSubscription = functions.https.onRequest((req, res) => {
       const decodedToken = await verifyAuth(req);
       if (!decodedToken) {
         res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
+
+      // Rate limiting - prevent abuse
+      const allowed = await checkRateLimit(decodedToken.uid, 'createSubscription');
+      if (!allowed) {
+        res.status(429).json({ success: false, error: 'Too many requests. Please try again later.' });
         return;
       }
 
@@ -673,6 +898,11 @@ export const createSubscription = functions.https.onRequest((req, res) => {
  */
 export const cancelSubscription = functions.https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
+    // Handle CORS preflight
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
     if (req.method !== 'POST') {
       res.status(405).json({ success: false, error: 'Method not allowed' });
       return;
@@ -738,6 +968,11 @@ export const cancelSubscription = functions.https.onRequest((req, res) => {
  */
 export const getSubscriptionStatus = functions.https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
+    // Handle CORS preflight
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
     if (req.method !== 'GET') {
       res.status(405).json({ success: false, error: 'Method not allowed' });
       return;
@@ -787,6 +1022,11 @@ export const getSubscriptionStatus = functions.https.onRequest((req, res) => {
  */
 export const deleteAccount = functions.https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
+    // Handle CORS preflight
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
     if (req.method !== 'POST') {
       res.status(405).json({ success: false, error: 'Method not allowed' });
       return;
@@ -796,6 +1036,13 @@ export const deleteAccount = functions.https.onRequest((req, res) => {
       const decodedToken = await verifyAuth(req);
       if (!decodedToken) {
         res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
+
+      // Rate limiting - prevent abuse (1 per day max)
+      const allowed = await checkRateLimit(decodedToken.uid, 'deleteAccount');
+      if (!allowed) {
+        res.status(429).json({ success: false, error: 'Too many requests. Please try again later.' });
         return;
       }
 
@@ -818,36 +1065,56 @@ export const deleteAccount = functions.https.onRequest((req, res) => {
         }
       }
 
-      // Delete user subcollections
+      // Delete user subcollections using batched deletes (max 500 per batch)
+      // This is more efficient and prevents excessive costs
+      const MAX_BATCH_SIZE = 500;
       const subcollections = ['projects', 'payments', 'voice_samples', 'favorites'];
+
       for (const subcollection of subcollections) {
         const subRef = db.collection('users').doc(uid).collection(subcollection);
-        const subDocs = await subRef.listDocuments();
-        for (const doc of subDocs) {
-          // For projects, also delete nested subcollections
-          if (subcollection === 'projects') {
-            const nestedCollections = ['segments', 'exports'];
-            for (const nested of nestedCollections) {
-              const nestedDocs = await doc.collection(nested).listDocuments();
-              for (const nestedDoc of nestedDocs) {
-                await nestedDoc.delete();
+        const subDocs = await subRef.limit(MAX_BATCH_SIZE).get();
+
+        if (!subDocs.empty) {
+          const batch = db.batch();
+
+          for (const doc of subDocs.docs) {
+            // For projects, also delete nested subcollections (limited)
+            if (subcollection === 'projects') {
+              const nestedCollections = ['segments', 'exports'];
+              for (const nested of nestedCollections) {
+                const nestedDocs = await doc.ref.collection(nested).limit(100).get();
+                nestedDocs.forEach(nestedDoc => batch.delete(nestedDoc.ref));
               }
             }
+            batch.delete(doc.ref);
           }
-          await doc.delete();
+
+          await batch.commit();
         }
       }
 
-      // Delete related orders
-      const ordersQuery = await db.collection('orders').where('uid', '==', uid).get();
-      for (const orderDoc of ordersQuery.docs) {
-        await orderDoc.ref.delete();
+      // Delete related orders (batched, limited)
+      const ordersQuery = await db.collection('orders')
+        .where('uid', '==', uid)
+        .limit(MAX_BATCH_SIZE)
+        .get();
+
+      if (!ordersQuery.empty) {
+        const orderBatch = db.batch();
+        ordersQuery.forEach(doc => orderBatch.delete(doc.ref));
+        await orderBatch.commit();
       }
 
-      // Delete related subscriptions
-      const subsQuery = await db.collection('subscriptions').where('uid', '==', uid).get();
-      for (const subDoc of subsQuery.docs) {
-        await subDoc.ref.delete();
+      // Delete related subscriptions (batched, limited)
+      const subsQuery = await db.collection('subscriptions')
+        .where('uid', '==', uid)
+        .limit(MAX_BATCH_SIZE)
+        .get();
+
+      if (!subsQuery.empty) {
+        const subsBatch = db.batch();
+        subsQuery.forEach(doc => subsBatch.delete(doc.ref));
+        await subsBatch.commit();
       }
 
       // Delete user document
@@ -877,6 +1144,11 @@ export const deleteAccount = functions.https.onRequest((req, res) => {
  */
 export const exportUserData = functions.https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
+    // Handle CORS preflight
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
     if (req.method !== 'GET') {
       res.status(405).json({ success: false, error: 'Method not allowed' });
       return;
@@ -886,6 +1158,13 @@ export const exportUserData = functions.https.onRequest((req, res) => {
       const decodedToken = await verifyAuth(req);
       if (!decodedToken) {
         res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
+
+      // Rate limiting - prevent abuse
+      const allowed = await checkRateLimit(decodedToken.uid, 'exportUserData');
+      if (!allowed) {
+        res.status(429).json({ success: false, error: 'Too many requests. Please try again later.' });
         return;
       }
 
@@ -929,6 +1208,157 @@ export const exportUserData = functions.https.onRequest((req, res) => {
     } catch (error) {
       console.error('Export user data error:', error);
       res.status(500).json({ success: false, error: 'Failed to export data' });
+    }
+  });
+});
+
+/**
+ * Migrate Payment Records
+ *
+ * Updates existing payment records with missing invoice data.
+ * This is a one-time migration function for old records.
+ * Call via authenticated request to migrate the current user's payments.
+ */
+export const migratePaymentRecords = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    // Handle CORS preflight
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
+    if (req.method !== 'POST') {
+      res.status(405).json({ success: false, error: 'Method not allowed' });
+      return;
+    }
+
+    try {
+      const decodedToken = await verifyAuth(req);
+      if (!decodedToken) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
+
+      const uid = decodedToken.uid;
+
+      // Get user data
+      const userDoc = await db.collection('users').doc(uid).get();
+      const userData = userDoc.data() || {};
+
+      // Get all payment records for this user
+      const paymentsRef = db.collection('users').doc(uid).collection('payments');
+      const paymentsSnap = await paymentsRef.get();
+
+      if (paymentsSnap.empty) {
+        res.json({
+          success: true,
+          message: 'No payment records to migrate',
+          migratedCount: 0,
+        });
+        return;
+      }
+
+      let migratedCount = 0;
+      const batch = db.batch();
+
+      for (const paymentDoc of paymentsSnap.docs) {
+        const payment = paymentDoc.data();
+
+        // Skip if already has invoice data
+        if (payment.invoiceNumber && payment.amountRupees !== undefined && payment.lineItems) {
+          continue;
+        }
+
+        // Get order data if available
+        let orderData: any = {};
+        if (payment.orderId) {
+          const orderDoc = await db.collection('orders').doc(payment.orderId).get();
+          if (orderDoc.exists) {
+            orderData = orderDoc.data() || {};
+          }
+        }
+
+        // Determine plan details
+        const planId = payment.planId || orderData.planId || userData.plan || 'individual';
+        const billingPeriod = payment.billingPeriod || orderData.billingPeriod || userData.billing_period || 'monthly';
+        const plan = PLANS[planId as PlanId] || PLANS.individual;
+        const pricing = plan[billingPeriod as BillingPeriod] || plan.monthly;
+
+        // Calculate amounts
+        const amountInPaise = payment.amount || orderData.amount || pricing.amount;
+        const amountInRupees = amountInPaise / 100;
+
+        // Generate invoice number if missing
+        const createdAt = payment.createdAt?.toDate?.() || new Date();
+        const dateStr = createdAt.toISOString().slice(0, 10).replace(/-/g, '');
+        const invoiceNumber = payment.invoiceNumber || `TV-${dateStr}-${paymentDoc.id.slice(0, 4).toUpperCase()}`;
+
+        // Calculate subscription dates
+        const subscriptionStart = createdAt.toISOString();
+        const expiresAt = new Date(createdAt);
+        if (billingPeriod === 'yearly') {
+          expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+        } else {
+          expiresAt.setMonth(expiresAt.getMonth() + 1);
+        }
+
+        // Build update data
+        const updateData: Record<string, any> = {
+          // Invoice identifiers
+          invoiceNumber: invoiceNumber,
+
+          // Plan details
+          planId: planId,
+          planName: plan.name,
+          billingPeriod: billingPeriod,
+
+          // Amount details
+          amountPaise: amountInPaise,
+          amountRupees: amountInRupees,
+          currency: payment.currency || orderData.currency || pricing.currency,
+          currencySymbol: (payment.currency || orderData.currency || pricing.currency) === 'INR' ? '₹' : (payment.currency || orderData.currency || pricing.currency),
+
+          // Line items
+          lineItems: [{
+            description: `${plan.name} Plan - ${billingPeriod === 'yearly' ? 'Annual' : 'Monthly'} Subscription`,
+            quantity: 1,
+            unitPrice: amountInRupees,
+            total: amountInRupees,
+          }],
+
+          // Customer details
+          customerName: payment.customerName || userData.displayName || userData.email?.split('@')[0] || 'Customer',
+          customerEmail: payment.customerEmail || userData.email || decodedToken.email || '',
+
+          // Dates
+          invoiceDate: payment.invoiceDate || subscriptionStart,
+          subscriptionStart: payment.subscriptionStart || subscriptionStart,
+          subscriptionEnd: payment.subscriptionEnd || expiresAt.toISOString(),
+
+          // Normalize status
+          status: payment.status === 'captured' ? 'paid' : (payment.status || 'paid'),
+
+          // Mark as migrated
+          _migrated: true,
+          _migratedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        batch.update(paymentDoc.ref, updateData);
+        migratedCount++;
+      }
+
+      if (migratedCount > 0) {
+        await batch.commit();
+      }
+
+      res.json({
+        success: true,
+        message: `Successfully migrated ${migratedCount} payment records`,
+        migratedCount: migratedCount,
+      });
+
+    } catch (error) {
+      console.error('Migration error:', error);
+      res.status(500).json({ success: false, error: 'Migration failed' });
     }
   });
 });

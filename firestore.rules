@@ -158,5 +158,14 @@ service cloud.firestore {
       // No client access - Cloud Functions only
       allow read, write: if false;
     }
+
+    // ============================================
+    // RATE LIMITS (Cloud Functions only)
+    // Used for cost protection and abuse prevention
+    // ============================================
+    match /rate_limits/{limitId} {
+      // No client access - Cloud Functions only
+      allow read, write: if false;
+    }
   }
 }
