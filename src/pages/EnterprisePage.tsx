@@ -23,22 +23,12 @@ import {
 import { LxusBrainLogo, LxusBrainTitle, TermiVoxedLogo } from '@/components/logos'
 import { Button } from '@/components/ui/button'
 
-// Enterprise features
+// Enterprise features - only features that are actually implemented
 const features = [
-  {
-    icon: Users,
-    title: 'Team Management',
-    description: 'Central admin dashboard to manage users, permissions, and usage across your organization.'
-  },
-  {
-    icon: Lock,
-    title: 'SSO / SAML Integration',
-    description: 'Single Sign-On with your existing identity provider - Okta, Azure AD, Google Workspace.'
-  },
   {
     icon: Shield,
     title: 'Enterprise Security',
-    description: 'AES-256 encryption, SOC 2 roadmap, GDPR & DPDP Act compliant. Your data stays secure.'
+    description: 'AES-256 encryption, GDPR & DPDP Act compliant. Your data stays secure with industry-standard protection.'
   },
   {
     icon: Server,
@@ -53,7 +43,17 @@ const features = [
   {
     icon: HeadphonesIcon,
     title: 'Dedicated Support',
-    description: 'Named account manager, 4-hour response SLA, and quarterly business reviews.'
+    description: 'Priority email support with faster response times and personalized assistance for your team.'
+  },
+  {
+    icon: Users,
+    title: 'Volume Licensing',
+    description: 'Flexible licensing for teams of any size with volume discounts. Deploy across your organization.'
+  },
+  {
+    icon: FileText,
+    title: 'Invoice Billing',
+    description: 'NET-30 payment terms with GST-compliant invoices. No credit card required for enterprise contracts.'
   }
 ]
 
@@ -521,11 +521,11 @@ Sent from TermiVoxed Enterprise page
               <span>info@lxusbrain.com</span>
             </a>
             <a
-              href="tel:+917550057333"
+              href="tel:+918667429016"
               className="flex items-center gap-3 text-muted-foreground hover:text-foreground transition"
             >
               <Phone className="w-5 h-5 text-amber-400" />
-              <span>+91 7550057333</span>
+              <span>+91 8667429016</span>
             </a>
           </div>
         </div>

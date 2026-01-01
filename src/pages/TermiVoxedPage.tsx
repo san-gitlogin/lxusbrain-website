@@ -122,7 +122,7 @@ const TIERS = [
     name: "Enterprise",
     price: { monthly: "Custom", yearly: "Custom" },
     description: "For teams & organizations",
-    features: ["2000 exports/month", "Custom branding", "Dedicated support", "SLA guarantee", "Up to 50 devices"],
+    features: ["Unlimited exports", "Volume licensing", "Priority support", "Invoice billing", "Up to 50 devices"],
     cta: "Contact Sales",
     highlighted: true,
   },

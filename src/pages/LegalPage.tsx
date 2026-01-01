@@ -11,7 +11,7 @@ const legalContent = {
     sections: [
       {
         title: null,
-        content: `For the purpose of these Terms and Conditions, the term "we", "us", "our" used anywhere on this page shall mean LxusBrain, whose registered/operational office is Aravind Santhosh Illam, Gudiyattam 632602 Gudiyattam South TAMIL NADU 632602. "you", "your", "user", "visitor" shall mean any natural or legal person who is visiting our website and/or agreed to purchase from us.`
+        content: `For the purpose of these Terms and Conditions, the term "we", "us", "our" used anywhere on this page shall mean LxusBrain, whose registered/operational office is Aravind Santhosh Illam, Gudiyattam South, Tamil Nadu 632602, India. "you", "your", "user", "visitor" shall mean any natural or legal person who is visiting our website and/or agreed to purchase from us.`
       },
       {
         title: 'Eligibility',
@@ -436,7 +436,7 @@ export function LegalPage() {
               <p className="font-medium text-foreground">LxusBrain Technologies</p>
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                <p>Aravind Santhosh Illam, Gudiyattam 632602<br />Gudiyattam South, TAMIL NADU 632602</p>
+                <p>Aravind Santhosh Illam, Gudiyattam South<br />Tamil Nadu 632602, India</p>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-cyan-400" />
