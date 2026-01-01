@@ -134,11 +134,16 @@ export function TermiVoxedPage() {
   const { user, logout, loading } = useAuth()
 
   const handleTierSelect = (tierName: string) => {
+    // Enterprise goes to dedicated enterprise page
+    if (tierName === 'Enterprise') {
+      navigate('/termivoxed/enterprise')
+      return
+    }
+
     const planMap: Record<string, string> = {
       'Free Trial': 'free',
       'Individual': 'individual',
-      'Pro': 'pro',
-      'Enterprise': 'enterprise'
+      'Pro': 'pro'
     }
     const plan = planMap[tierName] || 'individual'
     navigate(`/termivoxed/get-started?plan=${plan}`)

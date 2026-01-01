@@ -22,6 +22,7 @@ import { SettingsPage } from '@/pages/SettingsPage'
 import { SubscriptionPage } from '@/pages/SubscriptionPage'
 import { DemoPage } from '@/pages/DemoPage'
 import { TrialPage } from '@/pages/trial/TrialPage'
+import { EnterprisePage } from '@/pages/EnterprisePage'
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
           <Route path="/termivoxed/get-started" element={<GetStartedPage />} />
           <Route path="/termivoxed/demo" element={<DemoPage />} />
           <Route path="/termivoxed/try" element={<TrialPage />} />
+          <Route path="/termivoxed/enterprise" element={<EnterprisePage />} />
           <Route path="/legal/:type" element={<LegalPage />} />
 
           {/* Auth pages */}

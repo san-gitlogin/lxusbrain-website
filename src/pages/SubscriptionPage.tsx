@@ -226,7 +226,7 @@ export function SubscriptionPage() {
 
   const handleUpgrade = async (planId: string) => {
     if (planId === 'enterprise') {
-      window.location.href = 'mailto:lxusbrain@gmail.com?subject=Enterprise Plan Inquiry'
+      navigate('/termivoxed/enterprise')
       return
     }
 
