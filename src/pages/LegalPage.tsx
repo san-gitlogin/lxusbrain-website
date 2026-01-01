@@ -7,7 +7,7 @@ import { LxusBrainLogo, LxusBrainTitle } from '@/components/logos'
 const legalContent = {
   terms: {
     title: 'Terms & Conditions',
-    lastUpdated: 'Dec 29, 2025',
+    lastUpdated: 'Jan 01, 2026',
     sections: [
       {
         title: null,
@@ -50,6 +50,31 @@ const legalContent = {
       {
         title: 'Payment Processing',
         content: 'All payment transactions are processed through Razorpay, a PCI-DSS compliant payment aggregator licensed by the Reserve Bank of India. By making a purchase, you agree to Razorpay\'s terms of service and privacy policy. We do not store your complete credit/debit card details on our servers. Payment information is collected and processed securely by Razorpay.'
+      },
+      {
+        title: 'Subscription Billing and Pricing',
+        content: 'By subscribing to our services, you agree to the following billing terms:',
+        list: [
+          'Subscriptions are billed in advance on a recurring basis (monthly or yearly) based on your selected plan',
+          'Your subscription will automatically renew at the end of each billing period unless you cancel before the renewal date',
+          'We reserve the right to modify subscription pricing at any time. Price changes will take effect at the start of your next billing cycle following a minimum 30-day advance notice sent to your registered email address',
+          'For existing subscribers, the current subscription rate will remain in effect until the end of the current billing period. The new pricing will apply upon renewal',
+          'If you do not agree to a price change, you may cancel your subscription before the new pricing takes effect. Cancellation will not result in a refund of any prepaid amounts',
+          'Prices may vary by region and currency. International transactions may be subject to currency conversion at prevailing rates',
+          'All prices are inclusive of applicable taxes (GST for Indian customers) unless otherwise stated',
+          'Promotional or discounted pricing is valid only for the specified promotional period and may revert to standard pricing upon renewal'
+        ]
+      },
+      {
+        title: 'Enterprise Agreements',
+        content: 'Enterprise customers are subject to the following additional terms:',
+        list: [
+          'Enterprise pricing is determined on a case-by-case basis and will be detailed in a separate Enterprise Service Agreement',
+          'Enterprise contracts may include custom terms regarding pricing, service levels, support, and data handling',
+          'For Enterprise customers, pricing changes will be communicated as per the terms of the signed Enterprise Service Agreement, typically with a minimum 60-day notice period',
+          'Enterprise Service Level Agreements (SLAs) and custom terms supersede these general Terms where applicable',
+          'Enterprise invoicing and payment terms (such as NET-30 or NET-60) will be specified in the Enterprise Service Agreement'
+        ]
       },
       {
         title: 'Prohibited Uses',
