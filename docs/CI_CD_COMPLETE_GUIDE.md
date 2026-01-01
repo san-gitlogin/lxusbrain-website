@@ -1,6 +1,6 @@
 # LxusBrain Website - Complete CI/CD Guide
 
-> **Author:** Santhosh T / LxusBrain Technologies
+> **Author:** Santhosh T / LxusBrain
 > **Last Updated:** December 30, 2025
 > **Purpose:** Complete guide to understand, maintain, and troubleshoot the CI/CD pipeline
 
@@ -22,30 +22,34 @@
 ## 1. What is CI/CD?
 
 ### CI = Continuous Integration
+
 **Definition:** Automatically testing and validating code every time you push changes.
 
 Think of it like a quality inspector at a factory:
+
 - Every time you make a change (push code), the inspector (CI) checks it
 - If something is wrong, it tells you immediately
 - If everything is good, it gives you a green checkmark
 
 ### CD = Continuous Deployment
+
 **Definition:** Automatically deploying your code to production when tests pass.
 
 Think of it like an automatic delivery system:
+
 - Once the inspector (CI) approves your code
 - The delivery truck (CD) automatically takes it to the store (website)
 - Users see the updated website without you doing anything manually
 
 ### Why Do We Need This?
 
-| Without CI/CD | With CI/CD |
-|--------------|------------|
-| Manually test every change | Automatic testing |
-| Forget to run tests | Never forget - it's automatic |
-| "Works on my machine" issues | Tests run on clean environment |
+| Without CI/CD                   | With CI/CD                       |
+| ------------------------------- | -------------------------------- |
+| Manually test every change      | Automatic testing                |
+| Forget to run tests             | Never forget - it's automatic    |
+| "Works on my machine" issues    | Tests run on clean environment   |
 | Manual deployment (error-prone) | Automatic, consistent deployment |
-| Broken code reaches users | Broken code is blocked |
+| Broken code reaches users       | Broken code is blocked           |
 
 ---
 
@@ -168,6 +172,7 @@ This YAML file tells GitHub what to do when you push code.
 ### What Each Job Does
 
 #### Job 1: Lint & Type Check
+
 ```bash
 # What it runs:
 npm run lint        # ESLint - checks code style and potential bugs
@@ -177,6 +182,7 @@ npx tsc --noEmit    # TypeScript - checks type errors without building
 **Purpose:** Catch code quality issues early
 
 #### Job 2: Security Audit
+
 ```bash
 # What it runs:
 npm audit --audit-level=high    # Check for vulnerable dependencies
@@ -185,6 +191,7 @@ npm audit --audit-level=high    # Check for vulnerable dependencies
 **Purpose:** Ensure no known security vulnerabilities in packages
 
 #### Job 3: Build
+
 ```bash
 # What it runs:
 npm ci              # Install exact dependencies from lock file
@@ -194,6 +201,7 @@ npm run build       # Create production build in dist/
 **Purpose:** Verify the project can be built successfully
 
 #### Job 4: Deploy to GitHub Pages
+
 ```bash
 # What it does:
 # 1. Downloads the dist/ folder from Build job
@@ -204,6 +212,7 @@ npm run build       # Create production build in dist/
 **Purpose:** Publish the website
 
 #### Job 5: Deploy Firebase
+
 ```bash
 # What it does:
 # Deploys Firestore rules and Cloud Functions
@@ -218,6 +227,7 @@ npm run build       # Create production build in dist/
 ### Daily Development Process
 
 #### Step 1: Start Working
+
 ```bash
 # Navigate to project
 cd /Users/santhu/Downloads/SubsGen2/console_video_editor/web_ui/lxusbrain-website-new
@@ -230,10 +240,12 @@ npm run dev
 ```
 
 #### Step 2: Make Changes
+
 - Edit files in `src/`
 - View changes at http://localhost:5173
 
 #### Step 3: Check Your Code Locally (Before Pushing)
+
 ```bash
 # Run linting (same as CI)
 npm run lint
@@ -246,6 +258,7 @@ npm run build
 ```
 
 #### Step 4: Commit and Push
+
 ```bash
 # Stage all changes
 git add .
@@ -258,6 +271,7 @@ git push origin main
 ```
 
 #### Step 5: Monitor CI/CD
+
 ```bash
 # Check CI status in terminal
 gh run list --limit 5
@@ -269,6 +283,7 @@ gh run watch
 ```
 
 #### Step 6: Verify Deployment
+
 - Wait for CI to complete (1-2 minutes)
 - Visit https://lxusbrain.com
 - Hard refresh (Cmd+Shift+R on Mac) to see changes
@@ -277,15 +292,15 @@ gh run watch
 
 Use these prefixes for clear history:
 
-| Prefix | When to Use | Example |
-|--------|-------------|---------|
-| `feat:` | New feature | `feat: add dark mode toggle` |
-| `fix:` | Bug fix | `fix: resolve login button not working` |
-| `docs:` | Documentation | `docs: update README` |
-| `style:` | Code style (no logic change) | `style: fix indentation` |
-| `refactor:` | Code restructure | `refactor: simplify auth logic` |
-| `test:` | Tests | `test: add unit tests for utils` |
-| `chore:` | Maintenance | `chore: update dependencies` |
+| Prefix      | When to Use                  | Example                                 |
+| ----------- | ---------------------------- | --------------------------------------- |
+| `feat:`     | New feature                  | `feat: add dark mode toggle`            |
+| `fix:`      | Bug fix                      | `fix: resolve login button not working` |
+| `docs:`     | Documentation                | `docs: update README`                   |
+| `style:`    | Code style (no logic change) | `style: fix indentation`                |
+| `refactor:` | Code restructure             | `refactor: simplify auth logic`         |
+| `test:`     | Tests                        | `test: add unit tests for utils`        |
+| `chore:`    | Maintenance                  | `chore: update dependencies`            |
 
 ---
 
@@ -294,6 +309,7 @@ Use these prefixes for clear history:
 ### Where to Check CI/CD Status
 
 #### Option 1: Command Line (Fastest)
+
 ```bash
 # List recent CI runs
 gh run list --limit 5
@@ -305,6 +321,7 @@ gh run list --limit 5
 ```
 
 #### Option 2: GitHub Website
+
 1. Go to: https://github.com/san-gitlogin/lxusbrain-website/actions
 2. Click on the latest run
 3. See all jobs and their status
@@ -312,6 +329,7 @@ gh run list --limit 5
 ### How to Debug a Failed CI
 
 #### Step 1: Identify Which Job Failed
+
 ```bash
 # Get details of failed run
 gh run view <RUN_ID>
@@ -321,6 +339,7 @@ gh run view 20588822647
 ```
 
 #### Step 2: View the Logs
+
 ```bash
 # View logs for a specific job
 gh run view <RUN_ID> --log
@@ -332,6 +351,7 @@ gh run view <RUN_ID> --web
 #### Step 3: Common Failure Points
 
 **Lint Failed:**
+
 ```bash
 # Error in CI:
 # npm run lint
@@ -348,6 +368,7 @@ git add . && git commit -m "fix: resolve lint errors" && git push
 ```
 
 **Build Failed:**
+
 ```bash
 # Error in CI:
 # npm run build
@@ -363,6 +384,7 @@ npm run build
 ```
 
 **Deploy Failed:**
+
 ```bash
 # Usually a permissions issue
 # Check that GITHUB_TOKEN has write permissions
@@ -400,26 +422,30 @@ npm run build
 **How I Fixed It (December 2025):**
 
 1. Ran ESLint locally to see errors:
+
    ```bash
    npm run lint
    ```
 
 2. Found these types of errors:
+
    - Unused imports
    - `let` that should be `const`
    - Empty interfaces
    - Unused variables
 
 3. Fixed each file:
+
    ```typescript
    // Before (error: unused import)
-   import { Clock, X, User } from 'lucide-react'
+   import { Clock, X, User } from "lucide-react";
 
    // After (removed unused)
-   import { Clock } from 'lucide-react'
+   import { Clock } from "lucide-react";
    ```
 
 4. Updated ESLint config to be less strict:
+
    ```javascript
    // eslint.config.js
    rules: {
@@ -441,6 +467,7 @@ npm run build
 **Symptom:** "Cannot find name" or "Type error"
 
 **Solution:**
+
 ```bash
 # 1. Run type check locally
 npx tsc --noEmit
@@ -458,6 +485,7 @@ npx tsc --noEmit
 **Symptom:** CI shows success but website shows old version
 
 **Solutions:**
+
 1. Hard refresh browser: `Cmd+Shift+R` (Mac) or `Ctrl+Shift+R` (Windows)
 2. Clear browser cache
 3. Wait 2-5 minutes (GitHub Pages cache)
@@ -473,6 +501,7 @@ npx tsc --noEmit
 **Cause:** You're not on main branch, or it's a pull request
 
 **Solution:**
+
 ```bash
 # Merge to main branch
 git checkout main
@@ -485,6 +514,7 @@ git push origin main
 **Symptom:** Firebase deployment step fails
 
 **Solution:**
+
 1. Check FIREBASE_TOKEN secret exists in repository settings
 2. Regenerate token if expired:
    ```bash
@@ -498,34 +528,34 @@ git push origin main
 
 ### Git Commands
 
-| Command | Description |
-|---------|-------------|
-| `git status` | See what files changed |
-| `git add .` | Stage all changes |
-| `git commit -m "message"` | Commit with message |
-| `git push origin main` | Push to GitHub |
-| `git pull origin main` | Get latest from GitHub |
-| `git log --oneline -10` | See last 10 commits |
+| Command                   | Description            |
+| ------------------------- | ---------------------- |
+| `git status`              | See what files changed |
+| `git add .`               | Stage all changes      |
+| `git commit -m "message"` | Commit with message    |
+| `git push origin main`    | Push to GitHub         |
+| `git pull origin main`    | Get latest from GitHub |
+| `git log --oneline -10`   | See last 10 commits    |
 
 ### npm Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run lint` | Run ESLint |
-| `npx tsc --noEmit` | Check TypeScript types |
-| `npm ci` | Clean install dependencies |
+| Command            | Description                |
+| ------------------ | -------------------------- |
+| `npm run dev`      | Start development server   |
+| `npm run build`    | Build for production       |
+| `npm run lint`     | Run ESLint                 |
+| `npx tsc --noEmit` | Check TypeScript types     |
+| `npm ci`           | Clean install dependencies |
 
 ### GitHub CLI Commands
 
-| Command | Description |
-|---------|-------------|
-| `gh run list` | List CI runs |
-| `gh run view <ID>` | View specific run |
-| `gh run view <ID> --log` | View run logs |
-| `gh run watch` | Watch current run live |
-| `gh run rerun <ID>` | Retry a failed run |
+| Command                  | Description            |
+| ------------------------ | ---------------------- |
+| `gh run list`            | List CI runs           |
+| `gh run view <ID>`       | View specific run      |
+| `gh run view <ID> --log` | View run logs          |
+| `gh run watch`           | Watch current run live |
+| `gh run rerun <ID>`      | Retry a failed run     |
 
 ### Quick Debugging Commands
 
@@ -552,6 +582,7 @@ git diff HEAD~1
 We have automation scripts in the `scripts/` folder:
 
 #### Development Script (dev.sh)
+
 ```bash
 ./scripts/dev.sh [command]
 
@@ -565,6 +596,7 @@ We have automation scripts in the `scripts/` folder:
 ```
 
 #### Release Script (release.sh)
+
 ```bash
 ./scripts/release.sh
 
@@ -635,21 +667,21 @@ gh run rerun <LAST_RUN_ID>
 
 ### Key Files
 
-| File | Purpose |
-|------|---------|
-| `.github/workflows/ci.yml` | Defines CI/CD pipeline |
-| `eslint.config.js` | ESLint rules |
-| `package.json` | Dependencies and scripts |
-| `tsconfig.json` | TypeScript configuration |
+| File                       | Purpose                  |
+| -------------------------- | ------------------------ |
+| `.github/workflows/ci.yml` | Defines CI/CD pipeline   |
+| `eslint.config.js`         | ESLint rules             |
+| `package.json`             | Dependencies and scripts |
+| `tsconfig.json`            | TypeScript configuration |
 
 ### Key URLs
 
-| URL | Purpose |
-|-----|---------|
-| https://github.com/san-gitlogin/lxusbrain-website | Repository |
+| URL                                                       | Purpose         |
+| --------------------------------------------------------- | --------------- |
+| https://github.com/san-gitlogin/lxusbrain-website         | Repository      |
 | https://github.com/san-gitlogin/lxusbrain-website/actions | CI/CD Dashboard |
-| https://lxusbrain.com | Live Website |
+| https://lxusbrain.com                                     | Live Website    |
 
 ---
 
-*This documentation was created to help you maintain the CI/CD pipeline independently. If you follow the steps here, you can diagnose and fix any issues that arise.*
+_This documentation was created to help you maintain the CI/CD pipeline independently. If you follow the steps here, you can diagnose and fix any issues that arise._

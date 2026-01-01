@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # LxusBrain Website - Development Helper Script
-# Author: Santhosh T / LxusBrain Technologies
+# Author: Santhosh T / LxusBrain
 #
 # Usage: ./scripts/dev.sh [command]
 #

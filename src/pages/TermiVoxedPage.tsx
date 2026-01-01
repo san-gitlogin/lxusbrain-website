@@ -553,9 +553,7 @@ export function TermiVoxedPage() {
             <div>
               <h4 className="text-foreground font-semibold mb-4">Products</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link to="/termivoxed/app" className="text-muted-foreground hover:text-primary transition">TermiVoxed Web</Link></li>
-                <li><Link to="/termivoxed/try" className="text-muted-foreground hover:text-primary transition">Windows App</Link></li>
-                <li><Link to="/termivoxed/try" className="text-muted-foreground hover:text-primary transition">macOS App</Link></li>
+                <li><Link to="/termivoxed" className="text-muted-foreground hover:text-primary transition">TermiVoxed</Link></li>
               </ul>
             </div>
             <div>

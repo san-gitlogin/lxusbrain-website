@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # LxusBrain Website - Release Script
-# Author: Santhosh T / LxusBrain Technologies
+# Author: Santhosh T / LxusBrain
 #
 # Usage: ./scripts/release.sh [major|minor|patch]
 #

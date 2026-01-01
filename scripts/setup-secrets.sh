@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # LxusBrain Website - GitHub Secrets Setup Script
-# Author: Santhosh T / LxusBrain Technologies
+# Author: Santhosh T / LxusBrain
 #
 # This script helps you set up the required GitHub secrets for CI/CD deployment.
 # It reads from your local .env.local file and sets the secrets in GitHub.

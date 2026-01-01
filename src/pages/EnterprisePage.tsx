@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import {
   ArrowLeft,
   Building2,
@@ -16,127 +16,144 @@ import {
   ExternalLink,
   Zap,
   HeadphonesIcon,
-  Server
-} from 'lucide-react'
+  Server,
+} from "lucide-react";
 
-import { LxusBrainLogo, LxusBrainTitle, TermiVoxedLogo } from '@/components/logos'
-import { Button } from '@/components/ui/button'
+import {
+  LxusBrainLogo,
+  LxusBrainTitle,
+  TermiVoxedLogo,
+} from "@/components/logos";
+import { Button } from "@/components/ui/button";
 
 // Enterprise features - only features that are actually implemented
 const features = [
   {
     icon: Shield,
-    title: 'Enterprise Security',
-    description: 'AES-256 encryption, GDPR & DPDP Act compliant. Your data stays secure with industry-standard protection.'
+    title: "Enterprise Security",
+    description:
+      "AES-256 encryption, GDPR & DPDP Act compliant. Your data stays secure with industry-standard protection.",
   },
   {
     icon: Server,
-    title: '100% Local Processing',
-    description: 'Videos never leave your infrastructure. Process entirely on your machines for maximum privacy.'
+    title: "100% Local Processing",
+    description:
+      "Videos never leave your infrastructure. Process entirely on your machines for maximum privacy.",
   },
   {
     icon: Zap,
-    title: 'Unlimited Usage',
-    description: 'No limits on exports, TTS minutes, or AI generations. Scale without worrying about caps.'
+    title: "Unlimited Usage",
+    description:
+      "No limits on exports, TTS minutes, or AI generations. Scale without worrying about caps.",
   },
   {
     icon: HeadphonesIcon,
-    title: 'Dedicated Support',
-    description: 'Priority email support with faster response times and personalized assistance for your team.'
+    title: "Dedicated Support",
+    description:
+      "Priority email support with faster response times and personalized assistance for your team.",
   },
   {
     icon: Users,
-    title: 'Volume Licensing',
-    description: 'Flexible licensing for teams of any size with volume discounts. Deploy across your organization.'
+    title: "Volume Licensing",
+    description:
+      "Flexible licensing for teams of any size with volume discounts. Deploy across your organization.",
   },
   {
     icon: FileText,
-    title: 'Invoice Billing',
-    description: 'NET-30 payment terms with GST-compliant invoices. No credit card required for enterprise contracts.'
-  }
-]
+    title: "Invoice Billing",
+    description:
+      "NET-30 payment terms with GST-compliant invoices. No credit card required for enterprise contracts.",
+  },
+];
 
 // Downloadable resources
 const resources = [
   {
-    title: 'Enterprise Pricing Guide',
-    description: 'Detailed pricing structure with volume discounts and add-on services.',
+    title: "Enterprise Pricing Guide",
+    description:
+      "Detailed pricing structure with volume discounts and add-on services.",
     icon: FileText,
-    href: '/enterprise/enterprise-pricing.html',
-    type: 'PDF'
+    href: "/enterprise/enterprise-pricing.html",
+    type: "PDF",
   },
   {
-    title: 'Security Whitepaper',
-    description: 'Comprehensive overview of our security architecture, compliance, and practices.',
+    title: "Security Whitepaper",
+    description:
+      "Comprehensive overview of our security architecture, compliance, and practices.",
     icon: Shield,
-    href: '/enterprise/security-whitepaper.html',
-    type: 'PDF'
+    href: "/enterprise/security-whitepaper.html",
+    type: "PDF",
   },
   {
-    title: 'Data Processing Agreement',
-    description: 'Standard DPA for GDPR and DPDP Act compliance. Ready to sign.',
+    title: "Data Processing Agreement",
+    description:
+      "Standard DPA for GDPR and DPDP Act compliance. Ready to sign.",
     icon: FileText,
-    href: '/enterprise/data-processing-agreement.html',
-    type: 'PDF'
+    href: "/enterprise/data-processing-agreement.html",
+    type: "PDF",
   },
   {
-    title: 'Invoice Template',
-    description: 'GST-compliant invoice format for enterprise billing.',
+    title: "Invoice Template",
+    description: "GST-compliant invoice format for enterprise billing.",
     icon: FileText,
-    href: '/enterprise/enterprise-invoice-template.html',
-    type: 'HTML'
-  }
-]
+    href: "/enterprise/enterprise-invoice-template.html",
+    type: "HTML",
+  },
+];
 
 export function EnterprisePage() {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    company: '',
-    teamSize: '',
-    phone: '',
-    message: ''
-  })
-  const [submitted, setSubmitted] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+    name: "",
+    email: "",
+    company: "",
+    teamSize: "",
+    phone: "",
+    message: "",
+  });
+  const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     // Create mailto link with form data
-    const subject = encodeURIComponent(`Enterprise Inquiry from ${formData.company}`)
-    const body = encodeURIComponent(`
+    const subject = encodeURIComponent(
+      `Enterprise Inquiry from ${formData.company}`
+    );
+    const body = encodeURIComponent(
+      `
 Name: ${formData.name}
 Email: ${formData.email}
 Company: ${formData.company}
 Team Size: ${formData.teamSize}
-Phone: ${formData.phone || 'Not provided'}
+Phone: ${formData.phone || "Not provided"}
 
 Message:
 ${formData.message}
 
 ---
 Sent from TermiVoxed Enterprise page
-    `.trim())
+    `.trim()
+    );
 
     // Open mailto
-    window.location.href = `mailto:info@lxusbrain.com?subject=${subject}&body=${body}`
+    window.location.href = `mailto:info@lxusbrain.com?subject=${subject}&body=${body}`;
 
     // Show success after a brief delay
-    await new Promise(resolve => setTimeout(resolve, 500))
-    setIsSubmitting(false)
-    setSubmitted(true)
-  }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    setIsSubmitting(false);
+    setSubmitted(true);
+  };
 
   const fadeUp = {
     hidden: { opacity: 0, y: 20 },
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5, delay: i * 0.1 }
-    })
-  }
+      transition: { duration: 0.5, delay: i * 0.1 },
+    }),
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -158,7 +175,10 @@ Sent from TermiVoxed Enterprise page
                 <TermiVoxedLogo width={45} className="sm:w-[55px]" />
               </Link>
             </div>
-            <Link to="/termivoxed#pricing" className="text-muted-foreground hover:text-foreground transition flex items-center gap-2">
+            <Link
+              to="/termivoxed#pricing"
+              className="text-muted-foreground hover:text-foreground transition flex items-center gap-2"
+            >
               <ArrowLeft className="w-4 h-4" />
               Back to Pricing
             </Link>
@@ -177,7 +197,9 @@ Sent from TermiVoxed Enterprise page
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 mb-6"
           >
             <Building2 className="w-4 h-4 text-amber-400" />
-            <span className="text-amber-400 text-sm font-medium">Enterprise Plan</span>
+            <span className="text-amber-400 text-sm font-medium">
+              Enterprise Plan
+            </span>
           </motion.div>
 
           <motion.h1
@@ -187,7 +209,7 @@ Sent from TermiVoxed Enterprise page
             animate="visible"
             className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6"
           >
-            TermiVoxed for{' '}
+            TermiVoxed for{" "}
             <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
               Enterprise
             </span>
@@ -200,8 +222,8 @@ Sent from TermiVoxed Enterprise page
             animate="visible"
             className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8"
           >
-            AI-powered video dubbing at scale. Custom pricing, dedicated support,
-            and enterprise-grade security for your organization.
+            AI-powered video dubbing at scale. Custom pricing, dedicated
+            support, and enterprise-grade security for your organization.
           </motion.p>
 
           <motion.div
@@ -257,8 +279,12 @@ Sent from TermiVoxed Enterprise page
                 <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-4">
                   <feature.icon className="w-6 h-6 text-amber-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm">{feature.description}</p>
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-muted-foreground text-sm">
+                  {feature.description}
+                </p>
               </motion.div>
             ))}
           </div>
@@ -266,7 +292,10 @@ Sent from TermiVoxed Enterprise page
       </section>
 
       {/* Resources Section */}
-      <section id="resources" className="py-16 px-4 bg-white/[0.01] relative z-10">
+      <section
+        id="resources"
+        className="py-16 px-4 bg-white/[0.01] relative z-10"
+      >
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -278,7 +307,8 @@ Sent from TermiVoxed Enterprise page
               Enterprise Resources
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
-              Download our enterprise documentation. All documents can be printed or saved as PDF.
+              Download our enterprise documentation. All documents can be
+              printed or saved as PDF.
             </p>
           </motion.div>
 
@@ -305,7 +335,9 @@ Sent from TermiVoxed Enterprise page
                     </h3>
                     <ExternalLink className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <p className="text-muted-foreground text-sm">{resource.description}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {resource.description}
+                  </p>
                   <span className="inline-block mt-2 text-xs text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">
                     Open in new tab
                   </span>
@@ -320,7 +352,8 @@ Sent from TermiVoxed Enterprise page
             viewport={{ once: true }}
             className="text-center text-muted-foreground text-sm mt-8"
           >
-            Use "Print / Save as PDF" button in each document to download as PDF.
+            Use "Print / Save as PDF" button in each document to download as
+            PDF.
           </motion.p>
         </div>
       </section>
@@ -339,7 +372,8 @@ Sent from TermiVoxed Enterprise page
                   Request Enterprise Quote
                 </h2>
                 <p className="text-muted-foreground">
-                  Fill out the form below and we'll prepare a custom quote for your organization.
+                  Fill out the form below and we'll prepare a custom quote for
+                  your organization.
                 </p>
               </div>
 
@@ -353,7 +387,9 @@ Sent from TermiVoxed Enterprise page
                       type="text"
                       required
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
                       className="w-full px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/50"
                       placeholder="Your full name"
                     />
@@ -366,7 +402,9 @@ Sent from TermiVoxed Enterprise page
                       type="email"
                       required
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
                       className="w-full px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/50"
                       placeholder="you@company.com"
                     />
@@ -382,7 +420,9 @@ Sent from TermiVoxed Enterprise page
                       type="text"
                       required
                       value={formData.company}
-                      onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, company: e.target.value })
+                      }
                       className="w-full px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/50"
                       placeholder="Company name"
                     />
@@ -394,7 +434,9 @@ Sent from TermiVoxed Enterprise page
                     <select
                       required
                       value={formData.teamSize}
-                      onChange={(e) => setFormData({ ...formData, teamSize: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, teamSize: e.target.value })
+                      }
                       className="w-full px-4 py-3 rounded-xl bg-card border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/50"
                     >
                       <option value="">Select team size</option>
@@ -414,7 +456,9 @@ Sent from TermiVoxed Enterprise page
                   <input
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/50"
                     placeholder="+91 98765 43210"
                   />
@@ -422,13 +466,16 @@ Sent from TermiVoxed Enterprise page
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Tell us about your requirements <span className="text-red-400">*</span>
+                    Tell us about your requirements{" "}
+                    <span className="text-red-400">*</span>
                   </label>
                   <textarea
                     rows={4}
                     required
                     value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, message: e.target.value })
+                    }
                     className="w-full px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/50 resize-none"
                     placeholder="What features are most important? Any specific requirements? Expected video volume per month?"
                   />
@@ -453,8 +500,12 @@ Sent from TermiVoxed Enterprise page
                 </Button>
 
                 <p className="text-center text-muted-foreground text-xs">
-                  This will open your email client. Alternatively, email us directly at{' '}
-                  <a href="mailto:info@lxusbrain.com" className="text-amber-400 hover:underline">
+                  This will open your email client. Alternatively, email us
+                  directly at{" "}
+                  <a
+                    href="mailto:info@lxusbrain.com"
+                    className="text-amber-400 hover:underline"
+                  >
                     info@lxusbrain.com
                   </a>
                 </p>
@@ -463,7 +514,10 @@ Sent from TermiVoxed Enterprise page
               <div className="mt-8 p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
                 <div className="flex items-center gap-3 text-muted-foreground text-sm">
                   <Clock className="w-5 h-5 text-amber-400 flex-shrink-0" />
-                  <span>We typically respond within 24 hours with a custom quote and proposal.</span>
+                  <span>
+                    We typically respond within 24 hours with a custom quote and
+                    proposal.
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -476,9 +530,12 @@ Sent from TermiVoxed Enterprise page
               <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6">
                 <CheckCircle2 className="w-10 h-10 text-green-400" />
               </div>
-              <h2 className="text-2xl font-bold text-foreground mb-4">Request Received!</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-4">
+                Request Received!
+              </h2>
               <p className="text-muted-foreground mb-2 max-w-md mx-auto">
-                Your email client should have opened with your request. If it didn't, please email us directly:
+                Your email client should have opened with your request. If it
+                didn't, please email us directly:
               </p>
               <a
                 href="mailto:info@lxusbrain.com"
@@ -510,7 +567,9 @@ Sent from TermiVoxed Enterprise page
       {/* Contact Info Footer */}
       <section className="py-12 px-4 bg-white/[0.01] border-t border-border relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          <h3 className="text-lg font-semibold text-foreground mb-6">Other Ways to Reach Us</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-6">
+            Other Ways to Reach Us
+          </h3>
           <div className="flex flex-wrap justify-center gap-8">
             <a
               href="mailto:info@lxusbrain.com"
@@ -536,24 +595,33 @@ Sent from TermiVoxed Enterprise page
           <div className="flex items-center gap-2">
             <LxusBrainLogo size={20} />
             <span className="text-muted-foreground text-sm">
-              © {new Date().getFullYear()} LxusBrain Technologies
+              © {new Date().getFullYear()} LxusBrain
             </span>
           </div>
           <div className="flex items-center gap-6 text-sm">
-            <Link to="/legal/terms" className="text-muted-foreground hover:text-foreground transition">
+            <Link
+              to="/legal/terms"
+              className="text-muted-foreground hover:text-foreground transition"
+            >
               Terms
             </Link>
-            <Link to="/legal/privacy" className="text-muted-foreground hover:text-foreground transition">
+            <Link
+              to="/legal/privacy"
+              className="text-muted-foreground hover:text-foreground transition"
+            >
               Privacy
             </Link>
-            <Link to="/legal/refund" className="text-muted-foreground hover:text-foreground transition">
+            <Link
+              to="/legal/refund"
+              className="text-muted-foreground hover:text-foreground transition"
+            >
               Refund Policy
             </Link>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }
 
-export default EnterprisePage
+export default EnterprisePage;
