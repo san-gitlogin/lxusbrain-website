@@ -81,11 +81,11 @@ export function HomePage() {
   const navigate = useNavigate()
   const [wordIndex, setWordIndex] = useState(0)
 
-  // Cycle through words
+  // Cycle through words (5 seconds per word for better readability)
   useEffect(() => {
     const interval = setInterval(() => {
       setWordIndex((prev) => (prev + 1) % heroWords.length)
-    }, 3000)
+    }, 5000)
     return () => clearInterval(interval)
   }, [])
 

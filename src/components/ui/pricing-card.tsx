@@ -108,7 +108,7 @@ export function PricingCard({ tier, paymentFrequency, onSelect }: PricingCardPro
         <Button
           variant="default"
           className={cn(
-            "w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0"
+            "w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0 relative z-10"
           )}
           onClick={() => onSelect?.(tier.name)}
         >
@@ -121,9 +121,9 @@ export function PricingCard({ tier, paymentFrequency, onSelect }: PricingCardPro
 }
 
 const HighlightedBackground = () => (
-  <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,200,200,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,200,200,0.1)_1px,transparent_1px)] bg-[size:45px_45px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
+  <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,200,200,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,200,200,0.1)_1px,transparent_1px)] bg-[size:45px_45px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] pointer-events-none" />
 )
 
 const PopularBackground = () => (
-  <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.1),rgba(255,255,255,0))]" />
+  <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.1),rgba(255,255,255,0))] pointer-events-none" />
 )

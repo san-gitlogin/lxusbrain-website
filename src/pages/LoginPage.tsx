@@ -267,7 +267,10 @@ export function LoginPage() {
           className="mt-8 text-center text-muted-foreground"
         >
           Don't have an account?{' '}
-          <Link to="/termivoxed/register" className="text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
+          <Link
+            to={`/termivoxed/register${redirect !== '/termivoxed/dashboard' ? `?redirect=${encodeURIComponent(redirect)}` : ''}`}
+            className="text-cyan-400 hover:text-cyan-300 transition-colors font-medium"
+          >
             Sign up
           </Link>
         </motion.p>

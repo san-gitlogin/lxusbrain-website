@@ -1,20 +1,62 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { Mail, Lock, User, Eye, EyeOff, ArrowLeft, Loader2, Check } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { TermiVoxedLogo } from '@/components/logos'
 
+/**
+ * Validate and sanitize redirect URL to prevent open redirect attacks.
+ * Only allows relative paths starting with allowed prefixes.
+ */
+function getSafeRedirect(redirectParam: string | null): string {
+  const defaultRedirect = '/termivoxed/dashboard'
+
+  if (!redirectParam) {
+    return defaultRedirect
+  }
+
+  // Must be a relative path (starts with /)
+  if (!redirectParam.startsWith('/')) {
+    return defaultRedirect
+  }
+
+  // Block protocol-relative URLs (//evil.com)
+  if (redirectParam.startsWith('//')) {
+    return defaultRedirect
+  }
+
+  // Block URLs containing protocol (javascript:, data:, http:, etc.)
+  if (redirectParam.includes(':')) {
+    return defaultRedirect
+  }
+
+  // Only allow redirects to our app paths
+  const allowedPrefixes = ['/termivoxed/', '/app/', '/dashboard']
+  const isAllowed = allowedPrefixes.some(prefix => redirectParam.startsWith(prefix))
+
+  if (!isAllowed) {
+    return defaultRedirect
+  }
+
+  return redirectParam
+}
+
 export function RegisterPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirect = useMemo(
+    () => getSafeRedirect(searchParams.get('redirect')),
+    [searchParams]
+  )
   const { user, signInWithGoogle, signInWithMicrosoft, signUpWithEmail, error, loading, clearError } = useAuth()
 
-  // Redirect to dashboard after successful registration
+  // Redirect after successful registration/login
   useEffect(() => {
     if (user && !loading) {
-      navigate('/termivoxed/dashboard')
+      navigate(redirect)
     }
-  }, [user, loading, navigate])
+  }, [user, loading, navigate, redirect])
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -298,7 +340,10 @@ export function RegisterPage() {
           className="mt-8 text-center text-muted-foreground"
         >
           Already have an account?{' '}
-          <Link to="/termivoxed/login" className="text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
+          <Link
+            to={`/termivoxed/login${redirect !== '/termivoxed/dashboard' ? `?redirect=${encodeURIComponent(redirect)}` : ''}`}
+            className="text-cyan-400 hover:text-cyan-300 transition-colors font-medium"
+          >
             Sign in
           </Link>
         </motion.p>

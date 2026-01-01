@@ -492,9 +492,9 @@ export function TermiVoxedPage() {
           </motion.div>
 
           <div className="flex justify-center gap-4 md:gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)] max-h-[400px] md:max-h-[600px] overflow-hidden">
-            <TestimonialsColumn testimonials={firstColumn} duration={15} />
-            <TestimonialsColumn testimonials={secondColumn} className="hidden md:block" duration={19} />
-            <TestimonialsColumn testimonials={thirdColumn} className="hidden lg:block" duration={17} />
+            <TestimonialsColumn testimonials={firstColumn} duration={30} />
+            <TestimonialsColumn testimonials={secondColumn} className="hidden md:block" duration={38} />
+            <TestimonialsColumn testimonials={thirdColumn} className="hidden lg:block" duration={34} />
           </div>
         </div>
       </section>
