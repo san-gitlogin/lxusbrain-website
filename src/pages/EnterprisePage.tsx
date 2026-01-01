@@ -14,7 +14,6 @@ import {
   Clock,
   Loader2,
   ExternalLink,
-  Lock,
   Zap,
   HeadphonesIcon,
   Server
