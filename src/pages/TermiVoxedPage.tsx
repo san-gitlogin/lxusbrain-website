@@ -363,8 +363,9 @@ export function TermiVoxedPage() {
                     </li>
                   ))}
                 </ul>
-                <Link to="/termivoxed/try" className="btn-primary inline-flex items-center justify-center">
+                <Link to="/termivoxed/try" className="btn-primary inline-flex items-center justify-center gap-2">
                   Download App
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/30 text-amber-300 border border-amber-500/40">Beta</span>
                 </Link>
               </div>
               <div className="flex-1 flex items-center justify-center p-4">
@@ -578,11 +579,12 @@ export function TermiVoxedPage() {
           <div className="pt-6 pb-4 border-t border-border">
             <p className="text-center text-muted-foreground/60 text-xs mb-3">Powered by open source technologies</p>
             <div className="flex flex-wrap justify-center gap-3 text-xs">
-              <span className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70">FFmpeg</span>
-              <span className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70">Edge-TTS</span>
-              <span className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70">Coqui TTS</span>
-              <span className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70">LangChain</span>
-              <span className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70">Whisper</span>
+              <a href="https://www.ffmpeg.org/" target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70 hover:bg-white/[0.05] hover:text-muted-foreground transition-colors">FFmpeg</a>
+              <a href="https://github.com/rany2/edge-tts" target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70 hover:bg-white/[0.05] hover:text-muted-foreground transition-colors">Edge-TTS</a>
+              <a href="https://github.com/coqui-ai/TTS" target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70 hover:bg-white/[0.05] hover:text-muted-foreground transition-colors">Coqui TTS</a>
+              <a href="https://www.langchain.com/" target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70 hover:bg-white/[0.05] hover:text-muted-foreground transition-colors">LangChain</a>
+              <a href="https://ollama.com/" target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70 hover:bg-white/[0.05] hover:text-muted-foreground transition-colors">Ollama</a>
+              <a href="https://github.com/openai/whisper" target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70 hover:bg-white/[0.05] hover:text-muted-foreground transition-colors">Whisper</a>
             </div>
           </div>
           <div className="pt-4 border-t border-border text-center text-muted-foreground text-sm">

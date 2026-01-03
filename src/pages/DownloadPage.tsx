@@ -63,9 +63,10 @@ export function DownloadPage() {
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
               Download <span className="gradient-text">TermiVoxed</span>
+              <span className="ml-3 text-sm font-normal px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">Beta</span>
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              We're putting the finishing touches on our desktop apps. Be the first to know when they're ready!
+              We're putting the finishing touches on our desktop apps. Be the first to know when the beta is ready!
             </p>
           </motion.div>
 
