@@ -214,7 +214,7 @@ export function TrialPage() {
                 </div>
                 {DOWNLOADS_AVAILABLE ? (
                   <a
-                    href="#"
+                    href="https://github.com/LxusBrain/termivoxed/releases/download/v1.0.4/TermiVoxed-1.0.4-Setup.exe"
                     className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all"
                   >
                     <Download className="w-5 h-5" />
@@ -229,7 +229,7 @@ export function TrialPage() {
                     Coming Soon
                   </button>
                 )}
-                <p className="text-center text-xs text-muted-foreground mt-2">v1.0.0 • 85 MB</p>
+                <p className="text-center text-xs text-muted-foreground mt-2">v1.0.4 • 85 MB</p>
               </div>
 
               {/* macOS Download */}
@@ -252,7 +252,7 @@ export function TrialPage() {
                 </div>
                 {DOWNLOADS_AVAILABLE ? (
                   <a
-                    href="#"
+                    href="https://github.com/LxusBrain/termivoxed/releases/download/v1.0.4/TermiVoxed-1.0.4-macos.dmg"
                     className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-medium transition-all"
                   >
                     <Download className="w-5 h-5" />
@@ -267,7 +267,7 @@ export function TrialPage() {
                     Coming Soon
                   </button>
                 )}
-                <p className="text-center text-xs text-muted-foreground mt-2">v1.0.0 • 92 MB</p>
+                <p className="text-center text-xs text-muted-foreground mt-2">v1.0.4 • 92 MB</p>
               </div>
             </div>
 
@@ -355,7 +355,7 @@ export function TrialPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {DOWNLOADS_AVAILABLE ? (
                 <a
-                  href="#"
+                  href="https://github.com/LxusBrain/termivoxed/releases/tag/v1.0.4"
                   className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-medium transition-all"
                 >
                   <Download className="w-5 h-5" />
