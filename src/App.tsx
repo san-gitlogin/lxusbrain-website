@@ -23,6 +23,7 @@ import { SubscriptionPage } from '@/pages/SubscriptionPage'
 import { DemoPage } from '@/pages/DemoPage'
 import { TrialPage } from '@/pages/trial/TrialPage'
 import { EnterprisePage } from '@/pages/EnterprisePage'
+import { DesktopCallbackPage } from '@/pages/auth/DesktopCallbackPage'
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
           <Route path="/termivoxed/login" element={<LoginPage />} />
           <Route path="/termivoxed/register" element={<RegisterPage />} />
           <Route path="/termivoxed/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/termivoxed/desktop-callback" element={<DesktopCallbackPage />} />
 
           {/* Protected pages (auth check inside components) */}
           <Route path="/termivoxed/dashboard" element={<DashboardPage />} />

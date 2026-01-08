@@ -141,5 +141,12 @@ export async function logout() {
   await signOut(auth)
 }
 
+// Get current user's ID token (for desktop callback)
+export async function getCurrentUserToken(): Promise<string | null> {
+  const user = auth.currentUser
+  if (!user) return null
+  return await user.getIdToken()
+}
+
 export { onAuthStateChanged }
 export type { User, UserProfile }

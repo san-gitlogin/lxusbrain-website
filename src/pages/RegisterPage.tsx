@@ -51,12 +51,32 @@ export function RegisterPage() {
   )
   const { user, signInWithGoogle, signInWithMicrosoft, signUpWithEmail, error, loading, clearError } = useAuth()
 
+  // Desktop authentication detection
+  const isDesktopAuth = searchParams.get('source') === 'desktop'
+  const authMethod = searchParams.get('method') as 'email' | 'google' | 'microsoft' | null
+  const authError = searchParams.get('error')
+
+  // Auto-trigger OAuth for desktop authentication
+  useEffect(() => {
+    if (isDesktopAuth && !user && !loading) {
+      if (authMethod === 'google') {
+        handleGoogleLogin()
+      } else if (authMethod === 'microsoft') {
+        handleMicrosoftLogin()
+      }
+    }
+  }, [isDesktopAuth, authMethod, user, loading])
+
   // Redirect after successful registration/login
   useEffect(() => {
     if (user && !loading) {
-      navigate(redirect)
+      if (isDesktopAuth) {
+        navigate('/termivoxed/desktop-callback')
+      } else {
+        navigate(redirect)
+      }
     }
-  }, [user, loading, navigate, redirect])
+  }, [user, loading, navigate, redirect, isDesktopAuth])
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -74,20 +94,22 @@ export function RegisterPage() {
     setIsSubmitting(false)
   }
 
-  const handleGoogleLogin = async () => {
-    if (!agreedToTerms) {
+  const handleGoogleLogin = () => {
+    // For desktop auth, terms are shown on lxusbrain.com
+    if (!isDesktopAuth && !agreedToTerms) {
       alert('Please agree to the Terms of Service and Privacy Policy')
       return
     }
-    await signInWithGoogle()
+    signInWithGoogle()
   }
 
-  const handleMicrosoftLogin = async () => {
-    if (!agreedToTerms) {
+  const handleMicrosoftLogin = () => {
+    // For desktop auth, terms are shown on lxusbrain.com
+    if (!isDesktopAuth && !agreedToTerms) {
       alert('Please agree to the Terms of Service and Privacy Policy')
       return
     }
-    await signInWithMicrosoft()
+    signInWithMicrosoft()
   }
 
   const passwordStrength = () => {
@@ -155,14 +177,36 @@ export function RegisterPage() {
           <p className="text-muted-foreground">Get started with TermiVoxed today</p>
         </motion.div>
 
+        {/* Desktop auth banner */}
+        {isDesktopAuth && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 text-center"
+          >
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <span className="text-cyan-400 font-semibold text-sm">Signing up for TermiVoxed Desktop App</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {authMethod === 'google' && 'Please complete sign-up in the Google popup window...'}
+              {authMethod === 'microsoft' && 'Please complete sign-up in the Microsoft popup window...'}
+              {authMethod === 'email' && 'Enter your details below to create your account'}
+            </p>
+            <p className="text-xs text-yellow-400 mt-2">⚠️ Do not close this window</p>
+          </motion.div>
+        )}
+
         {/* Error message */}
-        {error && (
+        {(error || authError) && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm text-center"
           >
-            {error}
+            {authError === 'auth_failed' ? 'Sign-up failed. Please try again.' : error}
             <button onClick={clearError} className="ml-2 underline hover:no-underline">Dismiss</button>
           </motion.div>
         )}
