@@ -36,7 +36,16 @@ export const db = getFirestore(app)
 
 // Auth Providers
 const googleProvider = new GoogleAuthProvider()
+// Force account selection every time (prevents auto-login with cached account)
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+})
+
 const microsoftProvider = new OAuthProvider('microsoft.com')
+// Force account selection for Microsoft too
+microsoftProvider.setCustomParameters({
+  prompt: 'select_account'
+})
 
 // User profile type
 export interface UserProfile {
