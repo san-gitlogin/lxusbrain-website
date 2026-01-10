@@ -31,19 +31,17 @@ export function DesktopCallbackPage() {
 
         // Get Firebase ID token
         const token = await user.getIdToken()
-        console.log('[DESKTOP_CALLBACK] Token obtained, redirecting to desktop app...')
+        console.log('[DESKTOP_CALLBACK] Token obtained, delivering to desktop app...')
 
         setStatus('redirecting')
 
-        // Redirect to custom URL scheme
-        const callbackUrl = `termivoxed://auth?token=${encodeURIComponent(token)}`
-        window.location.href = callbackUrl
+        // Pass token in URL hash (works even with HTTPS → HTTP redirect)
+        // The hash is client-side only and works across domains
+        const callbackUrl = `http://localhost:8000/#token=${encodeURIComponent(token)}`
+        console.log('[DESKTOP_CALLBACK] Redirecting to localhost with token in hash')
 
-        // Show success message
-        setTimeout(() => {
-          setStatus('loading')
-          setErrorMessage('If the app did not open, please try again.')
-        }, 3000)
+        // Navigate back to localhost - this is the browser tab that user originally opened
+        window.location.href = callbackUrl
       } catch (error) {
         console.error('[DESKTOP_CALLBACK] Error:', error)
         setStatus('error')
