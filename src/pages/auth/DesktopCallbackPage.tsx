@@ -35,10 +35,14 @@ export function DesktopCallbackPage() {
 
         setStatus('redirecting')
 
+        // Get the callback port from URL params (passed from desktop app)
+        const urlParams = new URLSearchParams(window.location.search)
+        const callbackPort = urlParams.get('callback_port') || '8000'
+
         // Pass token in URL hash (works even with HTTPS → HTTP redirect)
         // The hash is client-side only and works across domains
-        const callbackUrl = `http://localhost:8000/#token=${encodeURIComponent(token)}`
-        console.log('[DESKTOP_CALLBACK] Redirecting to localhost with token in hash')
+        const callbackUrl = `http://localhost:${callbackPort}/#token=${encodeURIComponent(token)}`
+        console.log('[DESKTOP_CALLBACK] Redirecting to localhost:', callbackPort, 'with token in hash')
 
         // Navigate back to localhost - this is the browser tab that user originally opened
         window.location.href = callbackUrl

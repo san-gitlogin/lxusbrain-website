@@ -71,12 +71,14 @@ export function RegisterPage() {
   useEffect(() => {
     if (user && !loading) {
       if (isDesktopAuth) {
-        navigate('/termivoxed/desktop-callback')
+        // Pass callback_port to the desktop callback page
+        const callbackPort = searchParams.get('callback_port') || '8000'
+        navigate(`/termivoxed/desktop-callback?callback_port=${callbackPort}`)
       } else {
         navigate(redirect)
       }
     }
-  }, [user, loading, navigate, redirect, isDesktopAuth])
+  }, [user, loading, navigate, redirect, isDesktopAuth, searchParams])
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
