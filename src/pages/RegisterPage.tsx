@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { Mail, Lock, User, Eye, EyeOff, ArrowLeft, Loader2, Check } from 'lucide-react'
@@ -49,27 +49,61 @@ export function RegisterPage() {
     () => getSafeRedirect(searchParams.get('redirect')),
     [searchParams]
   )
-  const { user, signInWithGoogle, signInWithMicrosoft, signUpWithEmail, error, loading, clearError } = useAuth()
+  const { user, signInWithGoogle, signInWithMicrosoft, signUpWithEmail, logout, error, loading, clearError } = useAuth()
 
   // Desktop authentication detection
   const isDesktopAuth = searchParams.get('source') === 'desktop'
   const authMethod = searchParams.get('method') as 'email' | 'google' | 'microsoft' | null
   const authError = searchParams.get('error')
+  // fresh_login=true means user explicitly logged out and initiated a new signup/login
+  // In this case, we must show the account chooser even if they have an existing session
+  const isFreshLogin = searchParams.get('fresh_login') === 'true'
+
+  // Track if we're in the process of handling fresh login (logging out existing session)
+  const freshLoginHandledRef = useRef(false)
+  const [freshLoginLogoutInProgress, setFreshLoginLogoutInProgress] = useState(false)
+
+  // Handle fresh login: if user explicitly logged out and is trying to sign up again,
+  // we need to sign out of lxusbrain.com first so the account chooser appears
+  useEffect(() => {
+    if (isDesktopAuth && isFreshLogin && user && !loading && !freshLoginHandledRef.current) {
+      // User exists but this is a fresh login request
+      // Sign out first so the account chooser will appear
+      freshLoginHandledRef.current = true
+      setFreshLoginLogoutInProgress(true)
+      console.log('[REGISTER] Fresh login detected with existing session, signing out first...')
+      logout().then(() => {
+        console.log('[REGISTER] Signed out for fresh login, OAuth will be triggered')
+        setFreshLoginLogoutInProgress(false)
+      }).catch((err) => {
+        console.error('[REGISTER] Fresh login signout failed:', err)
+        setFreshLoginLogoutInProgress(false)
+      })
+    }
+  }, [isDesktopAuth, isFreshLogin, user, loading, logout])
 
   // Auto-trigger OAuth for desktop authentication
   useEffect(() => {
-    if (isDesktopAuth && !user && !loading) {
+    if (isDesktopAuth && !user && !loading && !freshLoginLogoutInProgress) {
       if (authMethod === 'google') {
         handleGoogleLogin()
       } else if (authMethod === 'microsoft') {
         handleMicrosoftLogin()
       }
     }
-  }, [isDesktopAuth, authMethod, user, loading])
+  }, [isDesktopAuth, authMethod, user, loading, freshLoginLogoutInProgress])
 
   // Redirect after successful registration/login
+  // Skip redirect if this is a fresh login and we haven't processed it yet
   useEffect(() => {
     if (user && !loading) {
+      // For fresh login: don't auto-redirect if we haven't handled the logout yet
+      // (user will become null after logout, then OAuth triggers, then user is set again)
+      if (isDesktopAuth && isFreshLogin && !freshLoginHandledRef.current) {
+        // Fresh login handling will take over - don't redirect with stale session
+        return
+      }
+
       if (isDesktopAuth) {
         // Pass callback_port to the desktop callback page
         const callbackPort = searchParams.get('callback_port') || '8000'
@@ -78,7 +112,7 @@ export function RegisterPage() {
         navigate(redirect)
       }
     }
-  }, [user, loading, navigate, redirect, isDesktopAuth, searchParams])
+  }, [user, loading, navigate, redirect, isDesktopAuth, isFreshLogin, searchParams])
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
