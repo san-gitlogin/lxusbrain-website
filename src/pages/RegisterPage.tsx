@@ -94,13 +94,13 @@ export function RegisterPage() {
   }, [isDesktopAuth, authMethod, user, loading, freshLoginLogoutInProgress])
 
   // Redirect after successful registration/login
-  // Skip redirect if this is a fresh login and we haven't processed it yet
+  // Skip redirect if fresh login logout is in progress
   useEffect(() => {
     if (user && !loading) {
-      // For fresh login: don't auto-redirect if we haven't handled the logout yet
-      // (user will become null after logout, then OAuth triggers, then user is set again)
-      if (isDesktopAuth && isFreshLogin && !freshLoginHandledRef.current) {
-        // Fresh login handling will take over - don't redirect with stale session
+      // Don't redirect while fresh login logout is in progress
+      // This prevents redirecting to desktop-callback before logout completes
+      if (freshLoginLogoutInProgress) {
+        console.log('[REGISTER] Skipping redirect - fresh login logout in progress')
         return
       }
 
@@ -112,7 +112,7 @@ export function RegisterPage() {
         navigate(redirect)
       }
     }
-  }, [user, loading, navigate, redirect, isDesktopAuth, isFreshLogin, searchParams])
+  }, [user, loading, navigate, redirect, isDesktopAuth, freshLoginLogoutInProgress, searchParams])
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
