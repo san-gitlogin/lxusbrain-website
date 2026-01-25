@@ -72,22 +72,32 @@ export function RegisterPage() {
       freshLoginHandledRef.current = true
       setFreshLoginLogoutInProgress(true)
       console.log('[REGISTER] Fresh login detected with existing session, signing out first...')
-      logout().then(() => {
-        console.log('[REGISTER] Signed out for fresh login, OAuth will be triggered')
-        setFreshLoginLogoutInProgress(false)
-      }).catch((err) => {
+      // NOTE: Don't set inProgress=false in the callback - let auth state change handle it
+      logout().catch((err) => {
         console.error('[REGISTER] Fresh login signout failed:', err)
         setFreshLoginLogoutInProgress(false)
       })
     }
   }, [isDesktopAuth, isFreshLogin, user, loading, logout])
 
+  // Detect when logout completes by watching for user becoming null
+  // This is more reliable than the logout() promise because auth state is async
+  useEffect(() => {
+    if (isFreshLogin && freshLoginHandledRef.current && freshLoginLogoutInProgress && !user && !loading) {
+      // User just became null after we initiated fresh login logout
+      console.log('[REGISTER] Auth state updated: user is null, logout complete')
+      setFreshLoginLogoutInProgress(false)
+    }
+  }, [isFreshLogin, freshLoginLogoutInProgress, user, loading])
+
   // Auto-trigger OAuth for desktop authentication
   useEffect(() => {
     if (isDesktopAuth && !user && !loading && !freshLoginLogoutInProgress) {
       if (authMethod === 'google') {
+        console.log('[REGISTER] Triggering Google OAuth popup')
         handleGoogleLogin()
       } else if (authMethod === 'microsoft') {
+        console.log('[REGISTER] Triggering Microsoft OAuth popup')
         handleMicrosoftLogin()
       }
     }
