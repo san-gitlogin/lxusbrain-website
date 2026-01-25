@@ -60,9 +60,10 @@ export function LoginPage() {
   // In this case, we must show the account chooser even if they have an existing session
   const isFreshLogin = searchParams.get('fresh_login') === 'true'
 
-  // Track if we're in the process of handling fresh login (logging out existing session)
+  // Track fresh login state using REFS (not state) to avoid React batching issues
+  // Refs update synchronously and are visible to all useEffects in the same render
   const freshLoginHandledRef = useRef(false)
-  const [freshLoginLogoutInProgress, setFreshLoginLogoutInProgress] = useState(false)
+  const userWasNullAfterFreshLoginRef = useRef(false)
 
   // Handle fresh login: if user explicitly logged out and is trying to log in again,
   // we need to sign out of lxusbrain.com first so the account chooser appears
@@ -71,29 +72,34 @@ export function LoginPage() {
       // User exists but this is a fresh login request
       // Sign out first so the account chooser will appear
       freshLoginHandledRef.current = true
-      setFreshLoginLogoutInProgress(true)
       console.log('[LOGIN] Fresh login detected with existing session, signing out first...')
-      // NOTE: Don't set inProgress=false in the callback - let auth state change handle it
       logout().catch((err) => {
         console.error('[LOGIN] Fresh login signout failed:', err)
-        setFreshLoginLogoutInProgress(false)
       })
     }
   }, [isDesktopAuth, isFreshLogin, user, loading, logout])
 
-  // Detect when logout completes by watching for user becoming null
-  // This is more reliable than the logout() promise because auth state is async
+  // Track when user becomes null (logout completed)
+  // This ref is used to distinguish between:
+  // - Initial page load with existing user (should NOT redirect)
+  // - After OAuth completed (user is non-null, should redirect)
   useEffect(() => {
-    if (isFreshLogin && freshLoginHandledRef.current && freshLoginLogoutInProgress && !user && !loading) {
-      // User just became null after we initiated fresh login logout
-      console.log('[LOGIN] Auth state updated: user is null, logout complete')
-      setFreshLoginLogoutInProgress(false)
+    if (isFreshLogin && freshLoginHandledRef.current && !user && !loading) {
+      console.log('[LOGIN] User is now null after fresh login logout')
+      userWasNullAfterFreshLoginRef.current = true
     }
-  }, [isFreshLogin, freshLoginLogoutInProgress, user, loading])
+  }, [isFreshLogin, user, loading])
 
   // Auto-trigger OAuth for desktop authentication
   useEffect(() => {
-    if (isDesktopAuth && !user && !loading && !freshLoginLogoutInProgress) {
+    // For fresh login: only trigger OAuth after user becomes null (logout completed)
+    if (isDesktopAuth && !user && !loading) {
+      // If this is a fresh login, only proceed if we've handled it (logout was initiated)
+      if (isFreshLogin && !freshLoginHandledRef.current) {
+        // Fresh login not yet initiated, wait for the first useEffect
+        return
+      }
+
       if (authMethod === 'google') {
         console.log('[LOGIN] Triggering Google OAuth popup')
         handleGoogleLogin()
@@ -102,17 +108,23 @@ export function LoginPage() {
         handleMicrosoftLogin()
       }
     }
-  }, [isDesktopAuth, authMethod, user, loading, freshLoginLogoutInProgress])
+  }, [isDesktopAuth, authMethod, user, loading, isFreshLogin])
 
   // Redirect if already logged in or after successful login
-  // Skip redirect if fresh login logout is in progress
   useEffect(() => {
     if (user && !loading) {
-      // Don't redirect while fresh login logout is in progress
-      // This prevents redirecting to desktop-callback before logout completes
-      if (freshLoginLogoutInProgress) {
-        console.log('[LOGIN] Skipping redirect - fresh login logout in progress')
-        return
+      // For fresh login flow: only redirect AFTER the user has gone through logout
+      // This prevents redirecting with the initial (stale) session
+      if (isDesktopAuth && isFreshLogin && freshLoginHandledRef.current) {
+        if (!userWasNullAfterFreshLoginRef.current) {
+          // User exists but we haven't completed logout yet
+          // The fresh login useEffect will handle logging out
+          console.log('[LOGIN] Fresh login: waiting for logout to complete...')
+          return
+        }
+        // userWasNullAfterFreshLoginRef.current is true
+        // This means user WAS null (logged out) and is now non-null (OAuth completed)
+        console.log('[LOGIN] Fresh login complete: user re-authenticated via OAuth')
       }
 
       if (isDesktopAuth) {
@@ -123,7 +135,7 @@ export function LoginPage() {
         navigate(redirect)
       }
     }
-  }, [user, loading, navigate, redirect, isDesktopAuth, freshLoginLogoutInProgress, searchParams])
+  }, [user, loading, navigate, redirect, isDesktopAuth, isFreshLogin, searchParams])
 
   const [email, setEmail] = useState(prefillEmail)
   const [password, setPassword] = useState('')
