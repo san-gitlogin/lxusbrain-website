@@ -20,9 +20,7 @@ import { LxusBrainLogo, LxusBrainTitle, TermiVoxedLogo } from '@/components/logo
 import { BeamsBackground } from '@/components/ui/beams-background'
 import { VideoShowcase } from '@/components/ui/video-showcase'
 import { useAuth } from '@/lib/auth-context'
-
-// Set to true when downloads are ready
-const DOWNLOADS_AVAILABLE = true
+import { useLatestRelease } from '@/hooks/useLatestRelease'
 
 // Trial features (accurate based on backend)
 const trialFeatures = [
@@ -37,6 +35,10 @@ const trialFeatures = [
 export function TrialPage() {
   const [selectedPlatform, setSelectedPlatform] = useState<'windows' | 'mac'>('windows')
   const { user, loading, signInWithGoogle, signInWithMicrosoft, error } = useAuth()
+  const { release } = useLatestRelease()
+  const downloadsAvailable = release.downloadsAvailable
+  const windowsAsset = release.assets.windows
+  const macosAsset = release.assets.macos
 
   const fadeUp = {
     hidden: { opacity: 0, y: 20 },
@@ -86,14 +88,14 @@ export function TrialPage() {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/30 mb-6">
               <Sparkles className="w-4 h-4 text-green-400" />
               <span className="text-green-400 text-sm font-medium">
-                {DOWNLOADS_AVAILABLE ? 'Start Your Free Trial' : 'Coming Soon'}
+                {downloadsAvailable ? 'Start Your Free Trial' : 'Coming Soon'}
               </span>
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
               Get Started with <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">TermiVoxed</span>
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
-              {DOWNLOADS_AVAILABLE
+              {downloadsAvailable
                 ? 'Download the app and start creating professional voice-overs in minutes. Try free for 7 days with 5 video exports - no credit card required.'
                 : "We're putting the finishing touches on our desktop apps. Sign in to be the first to know when they're ready!"
               }
@@ -101,7 +103,7 @@ export function TrialPage() {
           </motion.div>
 
           {/* Notify Section - Show when downloads not available */}
-          {!DOWNLOADS_AVAILABLE && (
+          {!downloadsAvailable && (
             <motion.div
               custom={1}
               variants={fadeUp}
@@ -187,7 +189,7 @@ export function TrialPage() {
 
           {/* Download Section */}
           <motion.div
-            custom={DOWNLOADS_AVAILABLE ? 1 : 2}
+            custom={downloadsAvailable ? 1 : 2}
             variants={fadeUp}
             initial="hidden"
             animate="visible"
@@ -212,9 +214,9 @@ export function TrialPage() {
                     <p className="text-muted-foreground text-sm">Windows 10/11 (64-bit)</p>
                   </div>
                 </div>
-                {DOWNLOADS_AVAILABLE ? (
+                {windowsAsset ? (
                   <a
-                    href="https://github.com/LxusBrain/termivoxed/releases/download/v1.0.9/TermiVoxed-1.0.9-Setup.exe"
+                    href={windowsAsset.url}
                     className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all"
                   >
                     <Download className="w-5 h-5" />
@@ -229,7 +231,7 @@ export function TrialPage() {
                     Coming Soon
                   </button>
                 )}
-                <p className="text-center text-xs text-muted-foreground mt-2">v1.0.9 • ~270 MB</p>
+                <p className="text-center text-xs text-muted-foreground mt-2">{release.version}{windowsAsset ? ` • ${windowsAsset.sizeFormatted}` : ''}</p>
               </div>
 
               {/* macOS Download */}
@@ -250,9 +252,9 @@ export function TrialPage() {
                     <p className="text-muted-foreground text-sm">macOS 11+ (Intel & Apple Silicon)</p>
                   </div>
                 </div>
-                {DOWNLOADS_AVAILABLE ? (
+                {macosAsset ? (
                   <a
-                    href="https://github.com/LxusBrain/termivoxed/releases/download/v1.0.9/TermiVoxed-1.0.9-macos.dmg"
+                    href={macosAsset.url}
                     className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-medium transition-all"
                   >
                     <Download className="w-5 h-5" />
@@ -267,7 +269,7 @@ export function TrialPage() {
                     Coming Soon
                   </button>
                 )}
-                <p className="text-center text-xs text-muted-foreground mt-2">v1.0.9 • ~415 MB</p>
+                <p className="text-center text-xs text-muted-foreground mt-2">{release.version}{macosAsset ? ` • ${macosAsset.sizeFormatted}` : ''}</p>
               </div>
             </div>
 
@@ -284,7 +286,7 @@ export function TrialPage() {
 
           {/* Video Showcase - Animated Carousel */}
           <motion.div
-            custom={DOWNLOADS_AVAILABLE ? 2 : 3}
+            custom={downloadsAvailable ? 2 : 3}
             variants={fadeUp}
             initial="hidden"
             animate="visible"
@@ -301,7 +303,7 @@ export function TrialPage() {
 
           {/* What's Included Section */}
           <motion.div
-            custom={DOWNLOADS_AVAILABLE ? 3 : 4}
+            custom={downloadsAvailable ? 3 : 4}
             variants={fadeUp}
             initial="hidden"
             animate="visible"
@@ -337,25 +339,25 @@ export function TrialPage() {
 
           {/* CTA Section */}
           <motion.div
-            custom={DOWNLOADS_AVAILABLE ? 4 : 5}
+            custom={downloadsAvailable ? 4 : 5}
             variants={fadeUp}
             initial="hidden"
             animate="visible"
             className="text-center"
           >
             <h2 className="text-2xl font-bold text-foreground mb-4">
-              {DOWNLOADS_AVAILABLE ? 'Ready to Get Started?' : 'Be the First to Know'}
+              {downloadsAvailable ? 'Ready to Get Started?' : 'Be the First to Know'}
             </h2>
             <p className="text-muted-foreground mb-6">
-              {DOWNLOADS_AVAILABLE
+              {downloadsAvailable
                 ? 'Download TermiVoxed now and start creating professional voice-overs in minutes.'
                 : 'Sign in above to join the waitlist. We\'ll email you the moment downloads are available.'
               }
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {DOWNLOADS_AVAILABLE ? (
+              {downloadsAvailable ? (
                 <a
-                  href="https://github.com/LxusBrain/termivoxed/releases/tag/v1.0.9"
+                  href={release.releasePageUrl}
                   className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-medium transition-all"
                 >
                   <Download className="w-5 h-5" />
