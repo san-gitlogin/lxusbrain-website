@@ -37,7 +37,7 @@ const problemScenarios: ProblemScenario[] = [
     badge: "Small Business",
     headline: "Need a professional ad. Budget says otherwise.",
     problem: "Video ads with voice-overs cost thousands. Agencies charge per minute. Web tools want monthly subscriptions. Your video sits unfinished.",
-    solution: "One-time affordable license. Unlimited exports. Create ads that sound like big-budget productions. Your data never leaves your computer.",
+    solution: "One-time affordable license. Unlimited exports. Create ads that sound like big-budget productions. Videos processed locally on your computer.",
     audience: "Small Business Owners",
     previewImage: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&auto=format&fit=crop&q=80"
   },
@@ -46,7 +46,7 @@ const problemScenarios: ProblemScenario[] = [
     badge: "Content Creation",
     headline: "Why are you still making PowerPoints?",
     problem: "Static slides in 2025? Your competitors are posting cinematic videos with professional narration. You're clicking through bullet points.",
-    solution: "Transform any screen recording into a polished video. AI-generated scripts. Word-timed subtitles. This is the modern era of presentations.",
+    solution: "Transform any screen recording into a polished video. AI-generated scripts via local LLMs (Ollama). Word-timed subtitles. This is the modern era of presentations.",
     audience: "Content Creators",
     previewImage: "https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?w=600&auto=format&fit=crop&q=80"
   },
@@ -64,7 +64,7 @@ const problemScenarios: ProblemScenario[] = [
     badge: "Team Collaboration",
     headline: "Marketing needs videos. IT needs security. Both need it yesterday.",
     problem: "Cloud tools mean data leaves your network. Compliance teams panic. Marketing waits. Videos don't get made.",
-    solution: "100% local processing. Videos never leave your infrastructure. Enterprise-grade security. Marketing ships. IT sleeps.",
+    solution: "Videos stay on your infrastructure. Choose Coqui TTS for fully local voice synthesis. Enterprise-grade security. Marketing ships. IT sleeps.",
     audience: "Enterprise Security",
     previewImage: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&auto=format&fit=crop&q=80"
   },

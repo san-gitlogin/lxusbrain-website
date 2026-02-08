@@ -586,6 +586,9 @@ export function TermiVoxedPage() {
               <a href="https://ollama.com/" target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70 hover:bg-white/[0.05] hover:text-muted-foreground transition-colors">Ollama</a>
               <a href="https://github.com/openai/whisper" target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded-full bg-white/[0.02] border border-white/[0.05] text-muted-foreground/70 hover:bg-white/[0.05] hover:text-muted-foreground transition-colors">Whisper</a>
             </div>
+            <p className="text-center text-muted-foreground/40 text-[10px] mt-3 max-w-lg mx-auto">
+              AI script generation requires Ollama with models that support structured output (e.g., Llama 3, Mistral). Models without structured output support may not generate scripts correctly.
+            </p>
           </div>
           <div className="pt-4 border-t border-border text-center text-muted-foreground text-sm">
             <p>&copy; {new Date().getFullYear()} LxusBrain. All rights reserved.</p>

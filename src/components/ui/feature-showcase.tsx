@@ -1,7 +1,7 @@
 import type React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion"
-import { Mic, Globe, Sparkles, Video, Zap, Shield, Check, Play } from "lucide-react"
+import { Mic, Globe, Sparkles, Video, Zap, Shield, Check, Play, FileText } from "lucide-react"
 import { VideoModal } from "@/components/ui/video-player"
 
 interface Feature {
@@ -39,6 +39,14 @@ const features: Feature[] = [
     videoUrl: '',
   },
   {
+    icon: FileText,
+    title: 'AI Script Generation',
+    description: 'Generate voice-over scripts using local LLMs via Ollama. Runs entirely on your machine with no cloud dependency. Requires models that support structured output (e.g., Llama 3, Mistral).',
+    highlights: ['Local LLM via Ollama', 'Structured output models', 'No cloud dependency', 'Privacy-first AI'],
+    previewImage: 'https://images.unsplash.com/photo-1655720828018-edd2daec9349?w=600&auto=format&fit=crop&q=80',
+    videoUrl: '',
+  },
+  {
     icon: Video,
     title: 'Video Processing',
     description: 'Handle multi-video projects with ease. Mix background music, stack segments, and export in quality presets up to 4K resolution.',
@@ -57,8 +65,8 @@ const features: Feature[] = [
   {
     icon: Shield,
     title: 'Enterprise Security',
-    description: '100% local processing. Your videos never leave your computer. AES-256 encryption, JWT authentication, and full GDPR/DPDP compliance.',
-    highlights: ['100% local processing', 'AES-256 encryption', 'GDPR compliant', 'Your data stays yours'],
+    description: 'Your videos stay on your computer. Choose Coqui TTS for 100% local voice synthesis, or Edge TTS for cloud-based voices. AES-256 encryption, JWT authentication, and full GDPR/DPDP compliance.',
+    highlights: ['Local video processing', 'Optional 100% local TTS', 'AES-256 encryption', 'GDPR compliant'],
     previewImage: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&auto=format&fit=crop&q=80',
     videoUrl: '',
   },
