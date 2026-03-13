@@ -15,32 +15,32 @@ export function TermiVoxedLogo({ className = "", width = 180 }: TermiVoxedLogoPr
       className={className}
       aria-label="TermiVoxed"
     >
-      <defs>
-        <style>
-          {`
-            .tv-stroke { fill: none; stroke: #000; stroke-miterlimit: 10; stroke-width: 3px; }
-            .tv-termi { font-family: 'JetBrains Mono', 'Cascadia Mono', monospace; font-size: 47px; }
-            .tv-voxed { font-family: 'Press Start 2P', cursive; font-size: 45.3px; fill: #fff; }
-            .tv-bg { fill: #fff; }
-            .tv-black { fill: #000; }
-            .tv-green { fill: #39b54a; }
-            .tv-orange { fill: #ff931e; }
-            .tv-red { fill: #ed1c24; }
-          `}
-        </style>
-      </defs>
       <g>
-        <rect className="tv-bg" x="1.5" y="1.5" width="205.07" height="172.5" rx="12" ry="12"/>
+        <rect fill="#fff" x="1.5" y="1.5" width="205.07" height="172.5" rx="12" ry="12"/>
         <g>
-          <rect className="tv-black" x="1.6" y="98.72" width="205.07" height="75.06" rx="12" ry="12"/>
-          <text className="tv-voxed" transform="translate(22.7 158.56) scale(.72 1)">voxed</text>
+          <rect fill="#000" x="1.6" y="98.72" width="205.07" height="75.06" rx="12" ry="12"/>
+          {/* voxed (Press Start 2P, converted to paths) */}
+          <g fill="#fff">
+            <path d="M375 125V250H250V375H125V750H375V375H625V750H875V375H750V250H625V125Z" transform="translate(22.70,158.56) scale(0.032616,-0.045300)"/>
+            <path d="M125 125V250H0V625H125V750H750V625H875V250H750V125ZM250 250H625V625H250Z" transform="translate(55.32,158.56) scale(0.032616,-0.045300)"/>
+            <path d="M0 125V250H125V375H250V500H125V625H0V750H250V625H375V500H500V625H625V750H875V625H750V500H625V375H750V250H875V125H625V250H500V375H375V250H250V125Z" transform="translate(87.93,158.56) scale(0.032616,-0.045300)"/>
+            <path d="M125 125V250H0V625H125V750H750V625H875V375H250V250H750V125ZM250 500H625V625H250Z" transform="translate(120.55,158.56) scale(0.032616,-0.045300)"/>
+            <path d="M125 125V250H0V625H125V750H625V1000H875V125ZM250 250H625V625H250Z" transform="translate(153.16,158.56) scale(0.032616,-0.045300)"/>
+          </g>
         </g>
-        <text className="tv-termi" transform="translate(13.66 76.6)">termi</text>
-        <rect className="tv-stroke" x="1.5" y="1.5" width="205.07" height="172.5" rx="12" ry="12"/>
-        <rect className="tv-black" x="170.13" y="60" width="7.5" height="28.5" transform="translate(248.13 -99.63) rotate(90)"/>
-        <circle className="tv-red" cx="14.13" cy="14.5" r="3"/>
-        <circle className="tv-orange" cx="25.13" cy="14.5" r="3"/>
-        <circle className="tv-green" cx="36.13" cy="14.5" r="3"/>
+        {/* termi (Cascadia Mono, converted to paths) */}
+        <g fill="#000">
+          <path d="M792 -20Q551 -20 443.5 80.0Q336 180 336 400V874H70V1060H336V1380H548V1060H1030V874H548V410Q548 284 609.5 227.0Q671 170 812 170Q862 170 918.0 175.5Q974 181 1046 190L1070 4Q1000 -8 933.5 -14.0Q867 -20 792 -20Z" transform="translate(13.66,76.60) scale(0.022949,-0.022949)"/>
+          <path d="M692 -20Q421 -20 273.5 122.5Q126 265 126 532Q126 792 251.0 936.0Q376 1080 604 1080Q819 1080 936.5 950.0Q1054 820 1054 572Q1054 499 1048 436H332Q360 303 458.0 234.5Q556 166 716 166Q782 166 846.0 173.5Q910 181 976 194L1002 8Q908 -10 830.0 -15.0Q752 -20 692 -20ZM324 598H862Q862 741 794.0 817.5Q726 894 606 894Q483 894 410.0 817.0Q337 740 324 598Z" transform="translate(41.20,76.60) scale(0.022949,-0.022949)"/>
+          <path d="M528 456V186H788V0H80V186H316V874H120V1060H488L524 788H548Q566 1080 840 1080Q1004 1080 1078.0 986.0Q1152 892 1152 682H942Q942 798 907.5 849.0Q873 900 796 900Q661 900 594.5 784.5Q528 669 528 456Z" transform="translate(68.74,76.60) scale(0.022949,-0.022949)"/>
+          <path d="M876 0V810Q876 920 794 920Q690 920 690 776V0H510V830Q510 920 426 920Q324 920 324 776V0H112V1060H300L314 928H330Q342 1080 512 1080Q579 1080 623.5 1042.0Q668 1004 683 928H700Q705 990 749.5 1035.0Q794 1080 878 1080Q988 1080 1038.0 1021.0Q1088 962 1088 830V0Z" transform="translate(96.28,76.60) scale(0.022949,-0.022949)"/>
+          <path d="M160 0V186H564V874H220V1060H776V186H1102V0ZM663 1228Q602 1228 558.5 1271.5Q515 1315 515 1376Q515 1438 558.5 1481.0Q602 1524 663 1524Q725 1524 768.0 1481.0Q811 1438 811 1376Q811 1315 768.0 1271.5Q725 1228 663 1228Z" transform="translate(123.82,76.60) scale(0.022949,-0.022949)"/>
+        </g>
+        <rect fill="none" stroke="#000" strokeMiterlimit="10" strokeWidth="3" x="1.5" y="1.5" width="205.07" height="172.5" rx="12" ry="12"/>
+        <rect fill="#000" x="170.13" y="60" width="7.5" height="28.5" transform="translate(248.13 -99.63) rotate(90)"/>
+        <circle fill="#ed1c24" cx="14.13" cy="14.5" r="3"/>
+        <circle fill="#ff931e" cx="25.13" cy="14.5" r="3"/>
+        <circle fill="#39b54a" cx="36.13" cy="14.5" r="3"/>
       </g>
     </svg>
   );

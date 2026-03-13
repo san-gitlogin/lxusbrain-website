@@ -40,6 +40,12 @@ export function TrialPage() {
   const windowsAsset = release.assets.windows
   const macosAsset = release.assets.macos
 
+  // Auto-detect platform for the generic "Download Now" CTA
+  const isWindows = navigator.platform.startsWith('Win')
+  const isMac = navigator.platform.startsWith('Mac')
+  const platformAsset = isWindows ? windowsAsset : isMac ? macosAsset : null
+  const downloadUrl = platformAsset?.url ?? release.releasePageUrl
+
   const fadeUp = {
     hidden: { opacity: 0, y: 20 },
     visible: (i: number) => ({
@@ -357,11 +363,11 @@ export function TrialPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {downloadsAvailable ? (
                 <a
-                  href={release.releasePageUrl}
+                  href={downloadUrl}
                   className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-medium transition-all"
                 >
                   <Download className="w-5 h-5" />
-                  Download Now
+                  {isWindows ? 'Download for Windows' : isMac ? 'Download for macOS' : 'Download Now'}
                 </a>
               ) : (
                 <button

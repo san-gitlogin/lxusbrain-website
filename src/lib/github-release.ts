@@ -41,21 +41,15 @@ const CACHE_KEY = 'termivoxed-latest-release'
 const CACHE_TTL_MS = 15 * 60 * 1000 // 15 minutes
 
 export const FALLBACK_RELEASE: ReleaseData = {
-  version: 'v1.0.10',
-  releasePageUrl: 'https://github.com/LxusBrain/termivoxed/releases/tag/v1.0.10',
+  version: 'v1.0.17',
+  releasePageUrl: 'https://github.com/LxusBrain/termivoxed/releases/tag/v1.0.17',
   downloadsAvailable: true,
   assets: {
     windows: {
-      url: 'https://github.com/LxusBrain/termivoxed/releases/download/v1.0.10/TermiVoxed-1.0.10-Setup.exe',
-      sizeFormatted: '282 MB',
-      sizeBytes: 282001193,
-      filename: 'TermiVoxed-1.0.10-Setup.exe',
-    },
-    macos: {
-      url: 'https://github.com/LxusBrain/termivoxed/releases/download/v1.0.10/TermiVoxed-1.0.10-macos.dmg',
+      url: 'https://github.com/LxusBrain/termivoxed/releases/download/v1.0.17/TermiVoxed-1.0.17-Setup.exe',
       sizeFormatted: '437 MB',
-      sizeBytes: 436879609,
-      filename: 'TermiVoxed-1.0.10-macos.dmg',
+      sizeBytes: 437352070,
+      filename: 'TermiVoxed-1.0.17-Setup.exe',
     },
   },
   fetchedAt: '',
