@@ -276,6 +276,12 @@ export function TrialPage() {
                   </button>
                 )}
                 <p className="text-center text-xs text-muted-foreground mt-2">{release.version}{macosAsset ? ` • ${macosAsset.sizeFormatted}` : ''}</p>
+                {macosAsset && (
+                  <p className="text-center text-xs text-amber-400/80 mt-2">
+                    ⚠ If macOS says the app is "damaged", open Terminal and run:<br />
+                    <code className="font-mono bg-white/[0.06] px-1.5 py-0.5 rounded text-amber-300">xattr -cr /Applications/TermiVoxed.app</code>
+                  </p>
+                )}
               </div>
             </div>
 
