@@ -31,6 +31,9 @@ functions/lib/
 # Test coverage
 functions/coverage/
 
+# Source images (large PNGs) - only optimized WebP versions are committed
+src/assets/images/problems/*.png
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

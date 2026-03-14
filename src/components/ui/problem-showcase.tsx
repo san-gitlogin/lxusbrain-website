@@ -3,6 +3,30 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion"
 import { Presentation, Mic, Video, Sparkles, Users, BookOpen, Megaphone } from "lucide-react"
 
+// Optimized WebP images (800px retina-ready, ~50-70KB each)
+import img1Lg from "@/assets/images/problems/optimized/TVXD_1-lg.webp"
+import img2Lg from "@/assets/images/problems/optimized/TVXD_2-lg.webp"
+import img3Lg from "@/assets/images/problems/optimized/TVXD_3-lg.webp"
+import img4Lg from "@/assets/images/problems/optimized/TVXD_4-lg.webp"
+import img5Lg from "@/assets/images/problems/optimized/TVXD_5-lg.webp"
+import img6Lg from "@/assets/images/problems/optimized/TVXD_6-lg.webp"
+
+// Thumbnails (96px, ~2KB each)
+import img1Sm from "@/assets/images/problems/optimized/TVXD_1-sm.webp"
+import img2Sm from "@/assets/images/problems/optimized/TVXD_2-sm.webp"
+import img3Sm from "@/assets/images/problems/optimized/TVXD_3-sm.webp"
+import img4Sm from "@/assets/images/problems/optimized/TVXD_4-sm.webp"
+import img5Sm from "@/assets/images/problems/optimized/TVXD_5-sm.webp"
+import img6Sm from "@/assets/images/problems/optimized/TVXD_6-sm.webp"
+
+// Tiny placeholders for blur-up effect (20px, ~100B each, inlined by Vite)
+import img1Ph from "@/assets/images/problems/optimized/TVXD_1-placeholder.webp"
+import img2Ph from "@/assets/images/problems/optimized/TVXD_2-placeholder.webp"
+import img3Ph from "@/assets/images/problems/optimized/TVXD_3-placeholder.webp"
+import img4Ph from "@/assets/images/problems/optimized/TVXD_4-placeholder.webp"
+import img5Ph from "@/assets/images/problems/optimized/TVXD_5-placeholder.webp"
+import img6Ph from "@/assets/images/problems/optimized/TVXD_6-placeholder.webp"
+
 interface ProblemScenario {
   icon: React.ElementType
   badge: string
@@ -11,6 +35,8 @@ interface ProblemScenario {
   solution: string
   audience: string
   previewImage: string
+  thumbnailImage: string
+  placeholderImage: string
 }
 
 const problemScenarios: ProblemScenario[] = [
@@ -21,7 +47,9 @@ const problemScenarios: ProblemScenario[] = [
     problem: "You've recorded the perfect screen demo, but it's silent. Hiring a voice artist? Days. Recording yourself? Awkward pauses, retakes, background noise.",
     solution: "Upload. Write script. Generate professional voice-over in minutes. Your demo sounds like a Netflix documentary.",
     audience: "Enterprise Teams",
-    previewImage: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=600&auto=format&fit=crop&q=80"
+    previewImage: img1Lg,
+    thumbnailImage: img1Sm,
+    placeholderImage: img1Ph,
   },
   {
     icon: BookOpen,
@@ -30,7 +58,9 @@ const problemScenarios: ProblemScenario[] = [
     problem: "You know your subject inside out, but recording yourself is painful. Vocabulary slips, 'umms' everywhere, accent concerns, endless retakes.",
     solution: "Focus on your content. Let AI handle the voice. Choose from 320+ natural voices. Your knowledge, professional delivery.",
     audience: "Course Creators",
-    previewImage: "https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=600&auto=format&fit=crop&q=80"
+    previewImage: img2Lg,
+    thumbnailImage: img2Sm,
+    placeholderImage: img2Ph,
   },
   {
     icon: Megaphone,
@@ -39,7 +69,9 @@ const problemScenarios: ProblemScenario[] = [
     problem: "Video ads with voice-overs cost thousands. Agencies charge per minute. Web tools want monthly subscriptions. Your video sits unfinished.",
     solution: "One-time affordable license. Unlimited exports. Create ads that sound like big-budget productions. Videos processed locally on your computer.",
     audience: "Small Business Owners",
-    previewImage: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&auto=format&fit=crop&q=80"
+    previewImage: img3Lg,
+    thumbnailImage: img3Sm,
+    placeholderImage: img3Ph,
   },
   {
     icon: Video,
@@ -48,7 +80,9 @@ const problemScenarios: ProblemScenario[] = [
     problem: "Static slides in 2025? Your competitors are posting cinematic videos with professional narration. You're clicking through bullet points.",
     solution: "Transform any screen recording into a polished video. AI-generated scripts via local LLMs (Ollama). Word-timed subtitles. This is the modern era of presentations.",
     audience: "Content Creators",
-    previewImage: "https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?w=600&auto=format&fit=crop&q=80"
+    previewImage: img4Lg,
+    thumbnailImage: img4Sm,
+    placeholderImage: img4Ph,
   },
   {
     icon: Mic,
@@ -57,7 +91,9 @@ const problemScenarios: ProblemScenario[] = [
     problem: "You want consistency across all videos. But recording takes time. Background noise. Energy levels vary. Same script, different takes.",
     solution: "Clone your voice with 6 seconds of audio. Generate unlimited voice-overs that sound exactly like you. Your voice, zero recording time.",
     audience: "Personal Branding",
-    previewImage: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=600&auto=format&fit=crop&q=80"
+    previewImage: img5Lg,
+    thumbnailImage: img5Sm,
+    placeholderImage: img5Ph,
   },
   {
     icon: Users,
@@ -66,7 +102,9 @@ const problemScenarios: ProblemScenario[] = [
     problem: "Cloud tools mean data leaves your network. Compliance teams panic. Marketing waits. Videos don't get made.",
     solution: "Videos stay on your infrastructure. Choose Coqui TTS for fully local voice synthesis. Enterprise-grade security. Marketing ships. IT sleeps.",
     audience: "Enterprise Security",
-    previewImage: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&auto=format&fit=crop&q=80"
+    previewImage: img6Lg,
+    thumbnailImage: img6Sm,
+    placeholderImage: img6Ph,
   },
 ]
 
@@ -387,6 +425,8 @@ export function ProblemShowcase({ className }: ProblemShowcaseProps) {
                   key={scenario.badge}
                   src={scenario.previewImage}
                   alt={scenario.badge}
+                  loading="eager"
+                  decoding="async"
                   className="absolute inset-0 w-full h-full object-cover"
                   initial={false}
                   animate={{
@@ -450,8 +490,10 @@ export function ProblemShowcase({ className }: ProblemShowcaseProps) {
                   }`}
                 >
                   <img
-                    src={scenario.previewImage}
+                    src={scenario.thumbnailImage}
                     alt={scenario.badge}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                   {index === activeIndex && (
