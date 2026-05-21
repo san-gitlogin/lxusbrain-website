@@ -2,7 +2,7 @@
   "schema": 1,
   "_comment": "TermiVoxed TTS status + self-update manifest. Served free at https://lxusbrain.com/tts-status.json (Vite public/ -> GitHub Pages). Edit this file to (a) warn users during an edge-tts outage via 'banner', and (b) point the in-app updater at a known-good edge-tts wheel via edge_tts.recommended_version + wheels[]. PUBLISH: edit -> bump, then run `npm run deploy`. Phase 3 adds an Ed25519 'signature' (same TERMIVOXED_UPDATE_PUBLIC_KEY as the app auto-updater) over the canonical JSON of this object minus the signature field; until then the app treats it as unverified/advisory and will NOT auto-download code from it.",
   "edge_tts": {
-    "status": "ok",
+    "status": "down",
     "recommended_version": "7.2.8",
     "min_supported": "6.1.0",
     "wheels": [
@@ -20,6 +20,10 @@
       "pure_python": true
     }
   ],
-  "banner": null,
-  "signature": "CR0uxlIvtv3taafQt/lMBFcRpG8BqYiYx4LykNyJPkFGrSJrs3ZT0bMRce5YsdaHXNE61uxO3X55QP3RoP4zAQ=="
+  "banner": {
+    "level": "error",
+    "text": "TEST BANNER (please ignore): edge-tts outage simulation. Click Update or use offline voices.",
+    "action": "open_voice_updates"
+  },
+  "signature": "lbKBcElW2hAGial2kufsN+3dM5uqa6BaLRLlq20CjqBfLLy4v//JVdJdFlW210VMiplnoNXoA9F+U+nJrwJMBg=="
 }
