@@ -1,8 +1,7 @@
 import type React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion"
-import { Mic, Globe, Sparkles, Video, Zap, Shield, Check, Play, FileText } from "lucide-react"
-import { VideoModal } from "@/components/ui/video-player"
+import { Mic, Globe, Sparkles, Video, Zap, Shield, Check, FileText } from "lucide-react"
 
 interface Feature {
   icon: React.ElementType
@@ -10,7 +9,6 @@ interface Feature {
   description: string
   highlights: string[]
   previewImage: string
-  videoUrl?: string
 }
 
 const features: Feature[] = [
@@ -20,7 +18,6 @@ const features: Feature[] = [
     description: 'Access 320+ natural-sounding AI voices powered by cutting-edge Edge-TTS technology. Adjust pitch, speed, and volume with real-time preview.',
     highlights: ['320+ natural voices', '75+ languages', 'Real-time preview', 'Pitch & speed control'],
     previewImage: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=600&auto=format&fit=crop&q=80',
-    videoUrl: '',
   },
   {
     icon: Globe,
@@ -28,7 +25,6 @@ const features: Feature[] = [
     description: 'Instantly dub your videos into any language with authentic accents and natural pronunciation. Perfect for reaching global audiences.',
     highlights: ['75+ languages', 'Authentic accents', 'Natural pronunciation', 'Instant dubbing'],
     previewImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&auto=format&fit=crop&q=80',
-    videoUrl: '',
   },
   {
     icon: Sparkles,
@@ -36,7 +32,6 @@ const features: Feature[] = [
     description: 'Auto-generate word-timed subtitles with advanced styling. Choose from 1000+ Google Fonts and apply professional animation effects.',
     highlights: ['Auto word-timing', '1000+ Google Fonts', 'Animation effects', 'Custom styling'],
     previewImage: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&auto=format&fit=crop&q=80',
-    videoUrl: '',
   },
   {
     icon: FileText,
@@ -44,7 +39,6 @@ const features: Feature[] = [
     description: 'Generate voice-over scripts using local LLMs via Ollama. Runs entirely on your machine with no cloud dependency. Requires models that support structured output (e.g., Llama 3, Mistral).',
     highlights: ['Local LLM via Ollama', 'Structured output models', 'No cloud dependency', 'Privacy-first AI'],
     previewImage: 'https://images.unsplash.com/photo-1655720828018-edd2daec9349?w=600&auto=format&fit=crop&q=80',
-    videoUrl: '',
   },
   {
     icon: Video,
@@ -52,7 +46,6 @@ const features: Feature[] = [
     description: 'Handle multi-video projects with ease. Mix background music, stack segments, and export in quality presets up to 4K resolution.',
     highlights: ['Multi-video projects', 'BGM mixing', 'Segment stacking', 'Up to 4K export'],
     previewImage: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600&auto=format&fit=crop&q=80',
-    videoUrl: '',
   },
   {
     icon: Zap,
@@ -60,7 +53,6 @@ const features: Feature[] = [
     description: 'Clone any voice with just 6 seconds of audio. Create personalized content that sounds exactly like you—or anyone you choose. We are still rigorously testing this — see our customer promise below before relying on it.',
     highlights: ['6-second samples', 'Perfect replication', 'Unlimited content', 'Your voice, no recording'],
     previewImage: 'https://images.unsplash.com/photo-1589254065878-42c9da997008?w=600&auto=format&fit=crop&q=80',
-    videoUrl: '',
   },
   {
     icon: Shield,
@@ -68,7 +60,6 @@ const features: Feature[] = [
     description: 'Your videos stay on your computer. Choose Coqui TTS for 100% local voice synthesis, or Edge TTS for cloud-based voices. AES-256 encryption, JWT authentication, and full GDPR/DPDP compliance.',
     highlights: ['Local video processing', 'Optional 100% local TTS', 'AES-256 encryption', 'GDPR compliant'],
     previewImage: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&auto=format&fit=crop&q=80',
-    videoUrl: '',
   },
 ]
 
@@ -78,7 +69,6 @@ interface FeatureShowcaseProps {
 
 export function FeatureShowcase({ className }: FeatureShowcaseProps) {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [playingVideo, setPlayingVideo] = useState<string | null>(null)
   const [isPaused, setIsPaused] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -104,13 +94,6 @@ export function FeatureShowcase({ className }: FeatureShowcaseProps) {
     }
   }
 
-  const handlePreviewClick = () => {
-    const current = features[activeIndex]
-    if (current.videoUrl) {
-      setPlayingVideo(current.videoUrl)
-    }
-  }
-
   const goNext = useCallback(() => {
     setActiveIndex((prev) => (prev + 1) % features.length)
   }, [])
@@ -121,14 +104,14 @@ export function FeatureShowcase({ className }: FeatureShowcaseProps) {
 
   // Auto-advance every 5 seconds
   useEffect(() => {
-    if (isPaused || playingVideo) return
+    if (isPaused) return
 
     const timer = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % features.length)
     }, 5000)
 
     return () => clearInterval(timer)
-  }, [isPaused, playingVideo])
+  }, [isPaused])
 
   const current = features[activeIndex]
   const IconComponent = current.icon
@@ -388,11 +371,10 @@ export function FeatureShowcase({ className }: FeatureShowcaseProps) {
             </div>
           </div>
 
-          {/* Right side - Preview Panel */}
+          {/* Right side - Preview Panel (passive — actual walkthroughs live in the showcase section below) */}
           <div className="w-full lg:w-[400px] xl:w-[440px] flex-shrink-0">
             <motion.div
-              className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800 border border-white/10 shadow-2xl cursor-pointer group"
-              onClick={handlePreviewClick}
+              className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800 border border-white/10 shadow-2xl"
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.3 }}
             >
@@ -413,29 +395,10 @@ export function FeatureShowcase({ className }: FeatureShowcaseProps) {
                 />
               ))}
 
-              {/* Play button overlay */}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors duration-300">
-                <motion.div
-                  className="w-16 h-16 rounded-full bg-cyan-500/90 flex items-center justify-center backdrop-blur-sm shadow-lg"
-                  initial={{ scale: 0.9, opacity: 0.8 }}
-                  whileHover={{ scale: 1.1 }}
-                  animate={{
-                    scale: [1, 1.05, 1],
-                    opacity: 1
-                  }}
-                  transition={{
-                    scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-                    opacity: { duration: 0.3 }
-                  }}
-                >
-                  <Play className="w-7 h-7 text-white ml-1" />
-                </motion.div>
-              </div>
-
-              {/* Gradient overlay */}
+              {/* Gradient overlay for legibility of bottom caption */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
 
-              {/* Feature info overlay */}
+              {/* Feature info overlay (no video click promise — walkthroughs are in the showcase below) */}
               <div className="absolute bottom-0 left-0 right-0 p-5">
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -445,13 +408,12 @@ export function FeatureShowcase({ className }: FeatureShowcaseProps) {
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.4 }}
                   >
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-1">
                       <div className="w-6 h-6 rounded-md bg-cyan-500/30 flex items-center justify-center">
                         <IconComponent className="w-3.5 h-3.5 text-cyan-400" />
                       </div>
                       <span className="text-white/80 text-sm font-medium">{current.title}</span>
                     </div>
-                    <p className="text-white/50 text-xs">Click to watch demo video</p>
                   </motion.div>
                 </AnimatePresence>
               </div>
@@ -529,15 +491,6 @@ export function FeatureShowcase({ className }: FeatureShowcaseProps) {
           </motion.div>
         </div>
       </div>
-
-      {/* Video Modal */}
-      <VideoModal
-        isOpen={!!playingVideo}
-        onClose={() => setPlayingVideo(null)}
-        src={playingVideo || ""}
-        poster={current.previewImage}
-        title={`${current.title} - Demo`}
-      />
     </div>
   )
 }

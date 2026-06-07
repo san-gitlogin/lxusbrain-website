@@ -1,67 +1,38 @@
 import type React from "react"
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useRef, useCallback } from "react"
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion"
-import { Play, Mic, Globe, Video, Wand2, Subtitles, Layers } from "lucide-react"
-import { VideoModal } from "@/components/ui/video-player"
+import { User, Mic, Globe } from "lucide-react"
 
 interface ShowcaseVideo {
   id: string
   icon: React.ElementType
   title: string
   description: string
-  duration: string
-  videoUrl?: string // YouTube embed URL or video file
-  thumbnailUrl?: string
+  /** 11-char YouTube video ID (e.g. the part after youtu.be/). Leave empty for placeholder. */
+  youtubeId?: string
 }
 
 const showcaseVideos: ShowcaseVideo[] = [
   {
-    id: 'overview',
-    icon: Video,
-    title: 'Quick Overview',
-    description: 'See the complete workflow from importing your video to exporting with professional voice-over and subtitles.',
-    duration: '2:30',
-    videoUrl: '', // Add YouTube embed URL when ready
+    id: 'sign-in',
+    icon: User,
+    title: 'Sign in and get started',
+    description: 'Sign in with Google in seconds. TermiVoxed is powered by Firebase — Google sign-in works alongside email/password, both end-to-end.',
+    youtubeId: 'CEkmeutE5Ss',
   },
   {
-    id: 'voice-generation',
+    id: 'first-voiceover',
     icon: Mic,
-    title: 'AI Voice Generation',
-    description: 'Choose from 320+ natural-sounding AI voices across 75+ languages. Adjust pitch, speed, and tone.',
-    duration: '1:45',
-    videoUrl: '',
+    title: 'Add a video, add a voice-over',
+    description: 'Drop a video into your project. Drop voice-over segments onto the timeline at the exact moments you want them. Generate and preview in real time.',
+    youtubeId: 'x6XJwuBpAKY',
   },
   {
-    id: 'dubbing',
+    id: 'multi-lingual',
     icon: Globe,
-    title: 'Multi-Language Dubbing',
-    description: 'Instantly dub your videos into any language with authentic accents and natural pronunciation.',
-    duration: '2:00',
-    videoUrl: '',
-  },
-  {
-    id: 'subtitles',
-    icon: Subtitles,
-    title: 'Smart Subtitles',
-    description: 'Auto-generate word-timed subtitles with 1000+ Google Fonts and professional animation effects.',
-    duration: '1:30',
-    videoUrl: '',
-  },
-  {
-    id: 'voice-cloning',
-    icon: Wand2,
-    title: 'Voice Cloning (Beta)',
-    description: 'Clone any voice with just 6 seconds of audio. Your voice, unlimited content, zero recording time. Beta — testing in progress, see our customer promise.',
-    duration: '2:15',
-    videoUrl: '',
-  },
-  {
-    id: 'timeline',
-    icon: Layers,
-    title: 'Timeline Editor',
-    description: 'Professional multi-track timeline with segment stacking, BGM mixing, and precise editing controls.',
-    duration: '1:50',
-    videoUrl: '',
+    title: 'Multi-video, multi-lingual',
+    description: 'Add multiple videos to one project. Voice each segment in a different regional language using Microsoft Edge TTS. The demo dubs the same segment in Tamil, then re-dubs it in Arabic.',
+    youtubeId: 'b05GbFv8DSY',
   },
 ]
 
@@ -71,7 +42,6 @@ interface VideoShowcaseProps {
 
 export function VideoShowcase({ className }: VideoShowcaseProps) {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [isPlaying, setIsPlaying] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Mouse position for magnetic effect
@@ -97,38 +67,17 @@ export function VideoShowcase({ className }: VideoShowcaseProps) {
   }
 
   const goNext = useCallback(() => {
-    if (!isPlaying) {
-      setActiveIndex((prev) => (prev + 1) % showcaseVideos.length)
-    }
-  }, [isPlaying])
+    setActiveIndex((prev) => (prev + 1) % showcaseVideos.length)
+  }, [])
 
   const goPrev = useCallback(() => {
-    if (!isPlaying) {
-      setActiveIndex((prev) => (prev - 1 + showcaseVideos.length) % showcaseVideos.length)
-    }
-  }, [isPlaying])
+    setActiveIndex((prev) => (prev - 1 + showcaseVideos.length) % showcaseVideos.length)
+  }, [])
 
-  // Auto-advance every 6 seconds when not playing
-  useEffect(() => {
-    if (isPlaying) return
-
-    const timer = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % showcaseVideos.length)
-    }, 6000)
-
-    return () => clearInterval(timer)
-  }, [isPlaying])
+  // Manual navigation only — auto-advance would interrupt video playback.
 
   const current = showcaseVideos[activeIndex]
   const IconComponent = current.icon
-
-  const handlePlay = () => {
-    setIsPlaying(true)
-  }
-
-  const handleClose = () => {
-    setIsPlaying(false)
-  }
 
   return (
     <div className={`relative w-full ${className}`}>
@@ -213,7 +162,7 @@ export function VideoShowcase({ className }: VideoShowcaseProps) {
               >
                 <span className="inline-flex items-center gap-2 text-xs font-mono text-muted-foreground border border-border rounded-full px-3 py-1.5">
                   <IconComponent className="w-3.5 h-3.5 text-cyan-400" />
-                  {current.duration}
+                  Walkthrough {activeIndex + 1} of {showcaseVideos.length}
                 </span>
               </motion.div>
             </AnimatePresence>
@@ -272,7 +221,7 @@ export function VideoShowcase({ className }: VideoShowcaseProps) {
               </motion.p>
             </AnimatePresence>
 
-            {/* Video Preview / Play Button */}
+            {/* Inline YouTube embed (one iframe at a time — only the active walkthrough loads) */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={`${activeIndex}-video`}
@@ -280,34 +229,22 @@ export function VideoShowcase({ className }: VideoShowcaseProps) {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.4, delay: 0.3 }}
-                className="relative aspect-video max-w-lg rounded-xl overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800 border border-white/10 cursor-pointer group mb-6"
-                onClick={handlePlay}
+                className="relative aspect-video max-w-lg rounded-xl overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800 border border-white/10 mb-6"
               >
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-600/10" />
-
-                {/* Play button */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <motion.div
-                    className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all duration-300"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Play className="w-8 h-8 md:w-10 md:h-10 text-white ml-1" />
-                  </motion.div>
-                </div>
-
-                {/* Duration badge */}
-                <div className="absolute bottom-3 right-3 px-2 py-1 rounded bg-black/60 text-white text-xs font-mono">
-                  {current.duration}
-                </div>
-
-                {/* Window controls decoration */}
-                <div className="absolute top-3 left-3 flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
-                </div>
+                {current.youtubeId ? (
+                  <iframe
+                    className="absolute inset-0 w-full h-full"
+                    src={`https://www.youtube-nocookie.com/embed/${current.youtubeId}?rel=0`}
+                    title={current.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <p className="text-white/60 text-sm">Walkthrough coming soon</p>
+                  </div>
+                )}
               </motion.div>
             </AnimatePresence>
 
@@ -417,14 +354,6 @@ export function VideoShowcase({ className }: VideoShowcaseProps) {
           ))}
         </div>
       </div>
-
-      {/* Video Player Modal */}
-      <VideoModal
-        isOpen={isPlaying}
-        onClose={handleClose}
-        src={current.videoUrl || ""}
-        title={current.title}
-      />
     </div>
   )
 }
