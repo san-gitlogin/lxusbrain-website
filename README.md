@@ -1,73 +1,92 @@
-# React + TypeScript + Vite
+# lxusbrain.com
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The marketing and account site for **LxusBrain** and its product **TermiVoxed**.
 
-Currently, two official plugins are available:
+Live at: [https://lxusbrain.com](https://lxusbrain.com)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Built with React 19 + TypeScript + Vite, deployed to GitHub Pages from the `gh-pages` branch via `npm run deploy`. Firebase Authentication + Firestore drive the dashboard / subscription flow; Razorpay handles payments (INR only — Indian company).
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## What lives here
 
-## Expanding the ESLint configuration
+- **Marketing pages** — homepage, TermiVoxed product page, trial / download page, demo, enterprise.
+- **Account dashboard** — login / register / forgot password, subscription management, settings, desktop-app OAuth callback.
+- **Legal** — terms, privacy, refund, shipping.
+- **Hosted assets** — `public/tts-status.json` (Ed25519-signed manifest the desktop app fetches to drive its outage banner + voice-engine self-update); `legal/` markdown for the legal pages.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+The download page (`/termivoxed/try`) live-fetches the latest release from `https://api.github.com/repos/LxusBrain/termivoxed/releases/latest`. When the API is rate-limited it falls back to the hardcoded `FALLBACK_RELEASE` in `src/lib/github-release.ts` — kept in lockstep with the public release tag by `lxb-termivoxed`'s `release_local.py` script.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Development
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm ci                # clean install
+npm run dev           # vite dev server (localhost:5173)
+npm run lint          # eslint
+npx tsc --noEmit      # typecheck
+npm run build         # production build → dist/
+npm run preview       # serve dist/ at localhost:4173
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Required local config
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+`web_ui/frontend/.env.local` style — create `.env.local` in the website repo with Firebase web config (`VITE_FIREBASE_*`). Without it, login silently breaks at runtime.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+## Deployment
+
+`npm run deploy` is the **only** publish path. It runs `predeploy` (`npm run build`) then `gh-pages -d dist --dotfiles`, which pushes the built `dist/` to the **`gh-pages`** branch — that branch (NOT `main`) is what GitHub Pages serves via the `CNAME lxusbrain.com`.
+
+Pushes to `main` trigger CI (lint + Firebase rules tests + build + audit) ≈ $0.60 per push. `npm run deploy` is **$0 CI** because `gh-pages` is not in the workflow trigger list. Content-only updates (homepage copy, `tts-status.json`, `FALLBACK_RELEASE` data, images) go straight via `npm run deploy` — never commit to `main` solely to publish.
+
+See [CLAUDE.md](./CLAUDE.md) in this repo for the full cost-safe procedure and the "things never to do" list.
+
+---
+
+## Repo layout
+
 ```
+src/
+├── pages/        # route components
+├── components/   # shared UI + showcases
+├── lib/          # firebase, razorpay, github-release fallback, feature flags
+├── hooks/        # useLatestRelease, useAuth, etc.
+└── assets/       # images, SVG logos, screenshots
+
+public/
+├── tts-status.json    # signed manifest (intentionally git-ignored; regenerated by build_tools/sign_tts_status.py in the app repo)
+├── legal/             # rendered legal markdown
+└── *.webp, *.svg      # logos, favicons, OG image
+
+functions/      # Cloud Functions for Razorpay checkout + webhooks
+firestore/      # security rules tested in CI
+```
+
+---
+
+## Related repos
+
+- `lxb-termivoxed` — the desktop app (React 19 frontend + FastAPI backend + PyInstaller build). This repo and that one form the LxusBrain monorepo at the maintainer's workspace.
+- `LxusBrain/termivoxed` — the public release repo where the Windows `.exe` and macOS `.dmg` are uploaded for users to download.
+
+---
+
+## Conventions
+
+- React 19 + TypeScript + TailwindCSS + Radix UI + Framer Motion + Three.js.
+- Razorpay only for payments (Indian company, INR).
+- File-name patterns the download page expects (don't change without updating `lxb-termivoxed/build_tools/release_local.py`):
+  - Windows: ends with `-Setup.exe`
+  - macOS: ends with `-macos.dmg`
+  - Linux: contains `-linux-` and ends with `.tar.gz`
+
+---
+
+## License
+
+Copyright 2024-2026 LxusBrain. All rights reserved.
+
+Proprietary. Source kept in this private repo; the live site is the only public artifact.
