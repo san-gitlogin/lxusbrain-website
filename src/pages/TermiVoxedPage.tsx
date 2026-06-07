@@ -15,7 +15,6 @@ import {
 
 // Components
 import { HeroGeometric } from '@/components/ui/shape-landing-hero'
-import { TestimonialsColumn } from '@/components/ui/testimonials-column'
 import { PricingSection } from '@/components/ui/pricing-section'
 import { LetsTalk } from '@/components/ui/lets-work-section'
 import { MovingBorderButton } from '@/components/ui/moving-border'
@@ -29,68 +28,34 @@ import { useAuth } from '@/lib/auth-context'
 // Logos
 import { LxusBrainLogo, LxusBrainTitle, TermiVoxedLogo } from '@/components/logos'
 
-// Featured showcase items with larger visuals
-const showcaseItems = [
+// Featured showcase items with larger visuals.
+// To embed a YouTube demo, set youtubeId to the 11-character video ID
+// (the bit after `v=` or `youtu.be/`). Leaving it empty shows a
+// 'Coming Soon' placeholder.
+const showcaseItems: {
+  title: string
+  description: string
+  youtubeId?: string
+  features: string[]
+}[] = [
   {
-    title: 'Intuitive Timeline Editor',
-    description: 'Professional-grade timeline with voice-over tracks, BGM mixing, and segment stacking. Drag, drop, and edit with precision.',
-    screenshot: '/screenshots/timeline.png', // Add your screenshot here
-    video: '/demo-videos/timeline-demo.mp4', // Optional: Add demo video
-    features: ['Multi-track editing', 'Segment stacking', 'Zoom controls', 'Real-time preview'],
+    title: 'Sign in and get started',
+    description: 'Sign in with Google in seconds. TermiVoxed is powered by Firebase — Google sign-in works alongside email/password, both end-to-end.',
+    youtubeId: 'CEkmeutE5Ss',
+    features: ['Google sign-in', 'Email & password', 'Firebase-backed', 'One-click setup'],
   },
   {
-    title: 'AI Voice Studio',
-    description: 'Select from 320+ natural-sounding voices across 75+ languages. Adjust pitch, speed, and volume with real-time preview.',
-    screenshot: '/screenshots/voice-studio.png', // Add your screenshot here
-    video: '/demo-videos/voice-studio-demo.mp4', // Optional: Add demo video
-    features: ['320+ voices', 'Real-time preview', 'Voice cloning', 'Emotion control'],
+    title: 'Add a video, add a voice-over',
+    description: 'Drop a video into your project. Drop voice-over segments onto the timeline at the exact moments you want them. Generate and preview in real time.',
+    youtubeId: 'x6XJwuBpAKY',
+    features: ['Drag-and-drop import', 'Segment-level timeline', 'Real-time preview', 'Per-segment voices'],
   },
   {
-    title: 'Smart Subtitle Generation',
-    description: 'Automatically generate word-timed subtitles with advanced styling options. Choose from 1000+ Google Fonts.',
-    screenshot: '/screenshots/subtitle-editor.png', // Add your screenshot here
-    video: '/demo-videos/subtitle-demo.mp4', // Optional: Add demo video
-    features: ['Auto-transcription', 'Word-level timing', '1000+ fonts', 'Animation effects'],
+    title: 'Multi-video, multi-lingual',
+    description: 'Add multiple videos to one project. Voice each segment in a different regional language using Microsoft Edge TTS. The demo dubs the same segment in Tamil, then re-dubs it in Arabic.',
+    youtubeId: 'b05GbFv8DSY',
+    features: ['Multi-video projects', '75+ languages', 'Microsoft Edge TTS', 'Per-segment language'],
   },
-]
-
-const testimonials = [
-  {
-    text: "TermiVoxed transformed how we create multilingual content. The AI voices are incredibly natural.",
-    image: "https://randomuser.me/api/portraits/women/1.jpg",
-    name: "Priya Sharma",
-    role: "Content Director, MediaWorks"
-  },
-  {
-    text: "Voice cloning feature is a game-changer. We maintain brand consistency across all languages.",
-    image: "https://randomuser.me/api/portraits/men/2.jpg",
-    name: "Rahul Verma",
-    role: "Brand Manager, TechFlow"
-  },
-  {
-    text: "Cut our video localization time by 80%. The subtitle styling is professional and beautiful.",
-    image: "https://randomuser.me/api/portraits/women/3.jpg",
-    name: "Ananya Patel",
-    role: "Video Producer, CreativeHub"
-  },
-  {
-    text: "Enterprise features and security compliance made it easy to adopt across our organization.",
-    image: "https://randomuser.me/api/portraits/men/4.jpg",
-    name: "Vikram Singh",
-    role: "CTO, GlobalMedia"
-  },
-  {
-    text: "The API integration was seamless. Now our entire workflow is automated.",
-    image: "https://randomuser.me/api/portraits/women/5.jpg",
-    name: "Sneha Reddy",
-    role: "Technical Lead, AutomateNow"
-  },
-  {
-    text: "Best investment for our e-learning platform. Students love the natural voice-overs.",
-    image: "https://randomuser.me/api/portraits/men/6.jpg",
-    name: "Arjun Menon",
-    role: "CEO, EduLearn"
-  }
 ]
 
 const PAYMENT_FREQUENCIES = ["monthly", "yearly"]
@@ -115,7 +80,7 @@ const TIERS = [
     name: "Pro",
     price: { monthly: 399, yearly: 333 },
     description: "For professionals",
-    features: ["Unlimited exports", "Voice cloning", "API access", "24/7 support", "3 devices"],
+    features: ["Unlimited exports", "Voice cloning (Beta)", "API access", "24/7 support", "3 devices"],
     cta: "Go Pro",
   },
   {
@@ -148,10 +113,6 @@ export function TermiVoxedPage() {
     const plan = planMap[tierName] || 'individual'
     navigate(`/termivoxed/get-started?plan=${plan}`)
   }
-
-  const firstColumn = testimonials.slice(0, 2)
-  const secondColumn = testimonials.slice(2, 4)
-  const thirdColumn = testimonials.slice(4, 6)
 
   return (
     <div className="min-h-screen bg-background">
@@ -354,7 +315,7 @@ export function TermiVoxedPage() {
                   Self-hosted AI voice-over platform. Generate natural-sounding dubbing in 75+ languages. Install on your infrastructure, maintain full control of your data.
                 </p>
                 <ul className="space-y-3 mb-8">
-                  {['320+ AI Voices', 'Voice Cloning Technology', '1000+ Subtitle Fonts', 'Multi-Video Projects'].map((item) => (
+                  {['320+ AI Voices', 'Voice Cloning Technology (Beta)', '1000+ Subtitle Fonts', 'Multi-Video Projects'].map((item) => (
                     <li key={item} className="flex items-center gap-3 text-foreground/80">
                       <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center">
                         <Check className="w-3 h-3 text-cyan-400" />
@@ -399,10 +360,10 @@ export function TermiVoxedPage() {
               See It In Action
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Powerful <span className="gradient-text">Interface</span>
+              From sign-in to <span className="gradient-text">multilingual</span>, in minutes
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              A professional video editing experience designed for creators
+              Three short walkthroughs — sign in, build your first voice-over, then scale up to multi-video and multi-lingual.
             </p>
           </motion.div>
 
@@ -418,31 +379,38 @@ export function TermiVoxedPage() {
                   index % 2 === 1 ? 'md:flex-row-reverse' : ''
                 }`}
               >
-                {/* Screenshot/Video Placeholder */}
+                {/* Demo video — YouTube embed if youtubeId is set, else 'Coming Soon' placeholder */}
                 <div className={`relative ${index % 2 === 1 ? 'md:order-2' : ''}`}>
                   <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800 border border-white/10 shadow-2xl">
-                    {/* Gradient placeholder - replace with actual screenshot */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-600/10" />
-
-                    {/* Placeholder content */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mx-auto mb-4 hover:scale-110 transition-transform cursor-pointer">
-                          <Play className="w-10 h-10 text-white ml-1" />
+                    {item.youtubeId ? (
+                      <iframe
+                        className="absolute inset-0 w-full h-full"
+                        src={`https://www.youtube-nocookie.com/embed/${item.youtubeId}?rel=0`}
+                        title={item.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        loading="lazy"
+                      />
+                    ) : (
+                      <>
+                        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-600/10" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mx-auto mb-4">
+                              <Play className="w-10 h-10 text-white ml-1" />
+                            </div>
+                            <p className="text-white/60 text-sm">Demo video coming soon</p>
+                          </div>
                         </div>
-                        <p className="text-white/60 text-sm">Screenshot/Video Coming Soon</p>
-                      </div>
-                    </div>
-
-                    {/* Decorative elements */}
-                    <div className="absolute top-3 left-3 flex gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-red-500/60" />
-                      <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-                      <div className="w-3 h-3 rounded-full bg-green-500/60" />
-                    </div>
+                        <div className="absolute top-3 left-3 flex gap-1.5">
+                          <div className="w-3 h-3 rounded-full bg-red-500/60" />
+                          <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
+                          <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                        </div>
+                      </>
+                    )}
                   </div>
 
-                  {/* Glow effect */}
                   <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 to-blue-600/20 blur-3xl -z-10 opacity-50" />
                 </div>
 
@@ -471,32 +439,34 @@ export function TermiVoxedPage() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-12 md:py-16 px-4 bg-gradient-to-b from-background/50 to-background overflow-hidden">
-        <div className="max-w-7xl mx-auto">
+      {/* Our Promise — beta feature honesty */}
+      <section id="promise" className="py-10 md:py-14 px-4">
+        <div className="max-w-3xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="text-center mb-8 md:mb-12"
+            className="section-card text-center"
           >
-            <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm mb-4">
-              Testimonials
-            </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
-              What Our <span className="gradient-text">Users Say</span>
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 mb-4">
+              <Sparkles className="w-4 h-4 text-cyan-400 mr-2" />
+              <span className="text-cyan-400 text-sm">Our Promise to You</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
+              We value you and your trust.
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Join thousands of satisfied creators and businesses
+            <p className="text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+              We will not promise what we haven&apos;t fully tested. Features marked
+              <span className="text-cyan-400"> (Beta) </span>
+              are functional and shipping today, but we are still rigorously validating them. If a Beta feature
+              doesn&apos;t work for you, write to us at <a href="mailto:lxusbrain@gmail.com" className="text-cyan-400 hover:text-cyan-300">lxusbrain@gmail.com</a> —
+              we will either fix it or refund you. Your honest feedback shapes every release.
+            </p>
+            <p className="text-muted-foreground/70 text-sm mt-4 italic">
+              We&apos;d rather under-promise and over-deliver than the other way around.
             </p>
           </motion.div>
-
-          <div className="flex justify-center gap-4 md:gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)] max-h-[400px] md:max-h-[600px] overflow-hidden">
-            <TestimonialsColumn testimonials={firstColumn} duration={30} />
-            <TestimonialsColumn testimonials={secondColumn} className="hidden md:block" duration={38} />
-            <TestimonialsColumn testimonials={thirdColumn} className="hidden lg:block" duration={34} />
-          </div>
         </div>
       </section>
 

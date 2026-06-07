@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { Mail, Lock, User, Eye, EyeOff, ArrowLeft, Loader2, Check } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
+import { MICROSOFT_LOGIN_ENABLED } from '@/lib/feature-flags'
 import { TermiVoxedLogo } from '@/components/logos'
 
 /**
@@ -102,7 +103,7 @@ export function RegisterPage() {
       if (authMethod === 'google') {
         console.log('[REGISTER] Triggering Google OAuth popup')
         handleGoogleLogin()
-      } else if (authMethod === 'microsoft') {
+      } else if (authMethod === 'microsoft' && MICROSOFT_LOGIN_ENABLED) {
         console.log('[REGISTER] Triggering Microsoft OAuth popup')
         handleMicrosoftLogin()
       }
@@ -324,19 +325,21 @@ export function RegisterPage() {
             Sign up with Google
           </button>
 
-          <button
-            onClick={handleMicrosoftLogin}
-            disabled={loading || !agreedToTerms}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] hover:border-white/20 transition-all text-foreground font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="#F25022" d="M1 1h10v10H1z"/>
-              <path fill="#00A4EF" d="M1 13h10v10H1z"/>
-              <path fill="#7FBA00" d="M13 1h10v10H13z"/>
-              <path fill="#FFB900" d="M13 13h10v10H13z"/>
-            </svg>
-            Sign up with Microsoft
-          </button>
+          {MICROSOFT_LOGIN_ENABLED && (
+            <button
+              onClick={handleMicrosoftLogin}
+              disabled={loading || !agreedToTerms}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] hover:border-white/20 transition-all text-foreground font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#F25022" d="M1 1h10v10H1z"/>
+                <path fill="#00A4EF" d="M1 13h10v10H1z"/>
+                <path fill="#7FBA00" d="M13 1h10v10H13z"/>
+                <path fill="#FFB900" d="M13 13h10v10H13z"/>
+              </svg>
+              Sign up with Microsoft
+            </button>
+          )}
         </motion.div>
 
         {/* Divider */}

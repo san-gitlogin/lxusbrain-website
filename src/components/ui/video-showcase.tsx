@@ -50,8 +50,8 @@ const showcaseVideos: ShowcaseVideo[] = [
   {
     id: 'voice-cloning',
     icon: Wand2,
-    title: 'Voice Cloning',
-    description: 'Clone any voice with just 6 seconds of audio. Your voice, unlimited content, zero recording time.',
+    title: 'Voice Cloning (Beta)',
+    description: 'Clone any voice with just 6 seconds of audio. Your voice, unlimited content, zero recording time. Beta — testing in progress, see our customer promise.',
     duration: '2:15',
     videoUrl: '',
   },

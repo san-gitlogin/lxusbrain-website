@@ -56,8 +56,8 @@ const features: Feature[] = [
   },
   {
     icon: Zap,
-    title: 'Voice Cloning',
-    description: 'Clone any voice with just 6 seconds of audio. Create personalized content that sounds exactly like you—or anyone you choose.',
+    title: 'Voice Cloning (Beta)',
+    description: 'Clone any voice with just 6 seconds of audio. Create personalized content that sounds exactly like you—or anyone you choose. We are still rigorously testing this — see our customer promise below before relying on it.',
     highlights: ['6-second samples', 'Perfect replication', 'Unlimited content', 'Your voice, no recording'],
     previewImage: 'https://images.unsplash.com/photo-1589254065878-42c9da997008?w=600&auto=format&fit=crop&q=80',
     videoUrl: '',

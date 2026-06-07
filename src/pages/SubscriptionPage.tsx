@@ -51,7 +51,7 @@ const plans = [
     name: 'Pro',
     price: { monthly: 399, yearly: 333 },
     description: 'For professionals',
-    features: ['Unlimited exports', 'Voice cloning', 'API access', '24/7 support', '3 devices'],
+    features: ['Unlimited exports', 'Voice cloning (Beta)', 'API access', '24/7 support', '3 devices'],
     cta: 'Upgrade'
   },
   {

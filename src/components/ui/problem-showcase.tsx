@@ -86,10 +86,10 @@ const problemScenarios: ProblemScenario[] = [
   },
   {
     icon: Mic,
-    badge: "Voice Cloning",
+    badge: "Voice Cloning (Beta)",
     headline: "Your voice. Without you speaking.",
     problem: "You want consistency across all videos. But recording takes time. Background noise. Energy levels vary. Same script, different takes.",
-    solution: "Clone your voice with 6 seconds of audio. Generate unlimited voice-overs that sound exactly like you. Your voice, zero recording time.",
+    solution: "Clone your voice with 6 seconds of audio. Generate unlimited voice-overs that sound exactly like you. We are still validating this feature — your honest feedback shapes the next release.",
     audience: "Personal Branding",
     previewImage: img5Lg,
     thumbnailImage: img5Sm,

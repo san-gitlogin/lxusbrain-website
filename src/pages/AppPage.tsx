@@ -4,6 +4,7 @@ import { Rocket, ArrowLeft, Sparkles, Loader2 } from 'lucide-react'
 
 import { LxusBrainLogo, LxusBrainTitle, TermiVoxedLogo } from '@/components/logos'
 import { useAuth } from '@/lib/auth-context'
+import { MICROSOFT_LOGIN_ENABLED } from '@/lib/feature-flags'
 
 export function AppPage() {
   const { user, loading, signInWithGoogle, signInWithMicrosoft, error } = useAuth()
@@ -88,7 +89,7 @@ export function AppPage() {
 
             {/* Features Preview */}
             <div className="flex flex-wrap justify-center gap-3 mb-10">
-              {['AI Voices', 'Multi-Language', 'Voice Cloning', 'Subtitle Editor'].map((feature) => (
+              {['AI Voices', 'Multi-Language', 'Voice Cloning (Beta)', 'Subtitle Editor'].map((feature) => (
                 <span key={feature} className="px-3 py-1.5 rounded-full bg-card border border-border text-sm text-muted-foreground flex items-center gap-1.5">
                   <Sparkles className="w-3 h-3 text-cyan-400" />
                   {feature}
@@ -130,23 +131,25 @@ export function AppPage() {
                   Continue with Google
                 </button>
 
-                <button
-                  onClick={signInWithMicrosoft}
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] hover:border-white/20 transition-all text-foreground font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <svg className="w-5 h-5" viewBox="0 0 24 24">
-                      <path fill="#F25022" d="M1 1h10v10H1z"/>
-                      <path fill="#00A4EF" d="M1 13h10v10H1z"/>
-                      <path fill="#7FBA00" d="M13 1h10v10H13z"/>
-                      <path fill="#FFB900" d="M13 13h10v10H13z"/>
-                    </svg>
-                  )}
-                  Continue with Microsoft
-                </button>
+                {MICROSOFT_LOGIN_ENABLED && (
+                  <button
+                    onClick={signInWithMicrosoft}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] hover:border-white/20 transition-all text-foreground font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <svg className="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#F25022" d="M1 1h10v10H1z"/>
+                        <path fill="#00A4EF" d="M1 13h10v10H1z"/>
+                        <path fill="#7FBA00" d="M13 1h10v10H13z"/>
+                        <path fill="#FFB900" d="M13 13h10v10H13z"/>
+                      </svg>
+                    )}
+                    Continue with Microsoft
+                  </button>
+                )}
               </div>
 
               <p className="mt-4 text-xs text-muted-foreground">

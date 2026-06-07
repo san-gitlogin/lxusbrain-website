@@ -269,7 +269,7 @@ export const PLAN_INFO = {
     name: 'Pro',
     monthly: 399,
     yearly: 333,
-    features: ['Unlimited exports', 'Voice cloning', 'API access', '24/7 support', '3 devices'],
+    features: ['Unlimited exports', 'Voice cloning (Beta)', 'API access', '24/7 support', '3 devices'],
   },
   enterprise: {
     name: 'Enterprise',

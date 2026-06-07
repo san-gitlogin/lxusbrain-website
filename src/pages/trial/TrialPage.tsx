@@ -20,6 +20,7 @@ import { LxusBrainLogo, LxusBrainTitle, TermiVoxedLogo } from '@/components/logo
 import { BeamsBackground } from '@/components/ui/beams-background'
 import { VideoShowcase } from '@/components/ui/video-showcase'
 import { useAuth } from '@/lib/auth-context'
+import { MICROSOFT_LOGIN_ENABLED } from '@/lib/feature-flags'
 import { useLatestRelease } from '@/hooks/useLatestRelease'
 
 // Trial features (accurate based on backend)
@@ -168,18 +169,20 @@ export function TrialPage() {
                       Continue with Google
                     </button>
 
-                    <button
-                      onClick={signInWithMicrosoft}
-                      className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] hover:border-white/20 transition-all text-foreground font-medium"
-                    >
-                      <svg className="w-5 h-5" viewBox="0 0 24 24">
-                        <path fill="#F25022" d="M1 1h10v10H1z"/>
-                        <path fill="#00A4EF" d="M1 13h10v10H1z"/>
-                        <path fill="#7FBA00" d="M13 1h10v10H13z"/>
-                        <path fill="#FFB900" d="M13 13h10v10H13z"/>
-                      </svg>
-                      Continue with Microsoft
-                    </button>
+                    {MICROSOFT_LOGIN_ENABLED && (
+                      <button
+                        onClick={signInWithMicrosoft}
+                        className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] hover:border-white/20 transition-all text-foreground font-medium"
+                      >
+                        <svg className="w-5 h-5" viewBox="0 0 24 24">
+                          <path fill="#F25022" d="M1 1h10v10H1z"/>
+                          <path fill="#00A4EF" d="M1 13h10v10H1z"/>
+                          <path fill="#7FBA00" d="M13 1h10v10H13z"/>
+                          <path fill="#FFB900" d="M13 13h10v10H13z"/>
+                        </svg>
+                        Continue with Microsoft
+                      </button>
+                    )}
                   </div>
 
                   <p className="mt-4 text-xs text-muted-foreground text-center">
