@@ -245,22 +245,19 @@ export function HomePage() {
                     {p.name === 'TermiVoxed' ? (
                       <TermiVoxedLogo width={170} className="relative transition-transform duration-500 group-hover:scale-105" />
                     ) : (
-                      <>
-                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_55%_55%,rgba(34,211,238,0.35),transparent_60%)]" />
                       <img
                         src={hidfiProductImg}
                         alt="The HID-Fi board in its 3D-printed case"
-                        className="relative w-full h-full object-cover mix-blend-multiply brightness-[1.32] contrast-[1.12] transition-transform duration-500 group-hover:scale-105"
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         width={1200}
                         height={735}
                         loading="lazy"
                       />
-                      </>
                     )}
                   </div>
                   <div className="p-6 md:p-8 flex flex-col flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      {p.name === 'HID-Fi' ? <HidFiLogo size={26} /> : <LxusBrainLogo size={22} />}
+                      {p.name === 'HID-Fi' ? <HidFiLogo size={28} /> : <TermiVoxedLogo width={33} />}
                       <h3 className="text-2xl font-bold text-foreground">{p.name}</h3>
                     </div>
                     <p className="text-muted-foreground mb-5">{p.tagline}</p>
