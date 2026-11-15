@@ -11,6 +11,7 @@ import { CookieConsent } from '@/components/ui/cookie-consent'
 // Pages
 import { HomePage } from '@/pages/HomePage'
 import { TermiVoxedPage } from '@/pages/TermiVoxedPage'
+import { HidFiPage } from '@/pages/HidFiPage'
 import { AppPage } from '@/pages/AppPage'
 import { GetStartedPage } from '@/pages/GetStartedPage'
 import { LegalPage } from '@/pages/LegalPage'
@@ -39,6 +40,8 @@ function App() {
           <Route path="/termivoxed/demo" element={<DemoPage />} />
           <Route path="/termivoxed/try" element={<TrialPage />} />
           <Route path="/termivoxed/enterprise" element={<EnterprisePage />} />
+          <Route path="/hid-fi" element={<HidFiPage />} />
+          <Route path="/hidfi" element={<Navigate to="/hid-fi" replace />} />
           <Route path="/legal/:type" element={<LegalPage />} />
 
           {/* Auth pages */}

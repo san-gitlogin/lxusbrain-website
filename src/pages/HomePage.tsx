@@ -1,12 +1,29 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Sparkles, Zap, Cpu } from 'lucide-react'
+import { ArrowRight, Sparkles, Zap, Cpu, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 import { MagneticText } from '@/components/ui/magnetic-text'
 import { BeamsBackground } from '@/components/ui/beams-background'
-import { LxusBrainLogo, LxusBrainTitle } from '@/components/logos'
+import { LxusBrainLogo, LxusBrainTitle, TermiVoxedLogo, HidFiLogo } from '@/components/logos'
+import hidfiProductImg from '@/assets/images/hidfi/product.webp'
+
+// The products, in the order they launched. Each card links to the product's own page.
+const products = [
+  {
+    name: 'TermiVoxed',
+    path: '/termivoxed',
+    tagline: 'AI voice-over and dubbing for your videos',
+    points: ['320+ AI voices in 75+ languages', 'Per-segment voices on a timeline', 'Runs on your own machine'],
+  },
+  {
+    name: 'HID-Fi',
+    path: '/hid-fi',
+    tagline: 'Control any computer from your phone, over Wi-Fi',
+    points: ['Trackpad, keyboard, media and gamepad', 'No drivers, no app on the computer', 'Works on the lock screen and in the BIOS'],
+  },
+] as const
 
 // Words and gradients for hero animation
 const heroWords = [
@@ -113,6 +130,7 @@ export function HomePage() {
               <LxusBrainTitle height={20} className="hidden sm:block" />
             </a>
             <div className="flex items-center space-x-4 sm:space-x-8">
+              <a href="#products" className="text-white/60 hover:text-white transition text-sm sm:text-base">Products</a>
               <a href="#about" className="text-white/60 hover:text-white transition text-sm sm:text-base">About</a>
               <a href="mailto:lxusbrain@gmail.com" className="text-white/60 hover:text-white transition text-sm sm:text-base hidden sm:block">Contact</a>
             </div>
@@ -134,7 +152,7 @@ export function HomePage() {
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/[0.08]">
               <LxusBrainLogo size={16} />
               <span className="text-sm text-muted-foreground tracking-wide">
-                AI-Powered Enterprise Solutions
+                AI software and connected hardware
               </span>
             </span>
           </motion.div>
@@ -166,10 +184,10 @@ export function HomePage() {
             animate="visible"
             className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 md:mb-16"
           >
-            Empowering enterprises with intelligent software solutions that transform workflows and unlock new possibilities.
+            Intelligent software and hardware that transform workflows and unlock new possibilities.
           </motion.p>
 
-          {/* Magnetic Text for TermiVoxed */}
+          {/* Magnetic Text: leads to the products */}
           <motion.div
             custom={3}
             variants={fadeUpVariants}
@@ -178,25 +196,97 @@ export function HomePage() {
           >
             <MagneticText
               text="Explore →"
-              hoverText="TermiVoxed"
-              onClick={() => navigate('/termivoxed')}
+              hoverText="Our products"
+              onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
               className="cursor-pointer"
               textClassName="text-3xl sm:text-4xl md:text-5xl lg:text-6xl"
               hoverTextClassName="text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
             />
           </motion.div>
 
-          {/* Coming soon hint */}
+        </div>
+      </section>
+
+      {/* Products Section */}
+      <section id="products" className="py-16 md:py-24 px-4 relative scroll-mt-16">
+        <div className="max-w-6xl mx-auto">
           <motion.div
-            custom={4}
-            variants={fadeUpVariants}
-            initial="hidden"
-            animate="visible"
-            className="mt-10 md:mt-16 flex items-center justify-center gap-2 text-muted-foreground/50"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-10 md:mb-14"
           >
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Our <span className="gradient-text">Products</span>
+            </h2>
+            <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
+              One for the videos you make, one for the computers you use.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-6 md:gap-8">
+            {products.map((p, i) => (
+              <motion.div
+                key={p.name}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: i * 0.12 }}
+                viewport={{ once: true }}
+              >
+                <button
+                  type="button"
+                  onClick={() => navigate(p.path)}
+                  className="group w-full h-full text-left rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-cyan-500/40 transition-all duration-300 overflow-hidden flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+                  aria-label={`Explore ${p.name}`}
+                >
+                  <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-600/10" />
+                    {p.name === 'TermiVoxed' ? (
+                      <TermiVoxedLogo width={170} className="relative transition-transform duration-500 group-hover:scale-105" />
+                    ) : (
+                      <>
+                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_55%_55%,rgba(34,211,238,0.35),transparent_60%)]" />
+                      <img
+                        src={hidfiProductImg}
+                        alt="The HID-Fi board in its 3D-printed case"
+                        className="relative w-full h-full object-cover mix-blend-multiply brightness-[1.32] contrast-[1.12] transition-transform duration-500 group-hover:scale-105"
+                        width={1200}
+                        height={735}
+                        loading="lazy"
+                      />
+                      </>
+                    )}
+                  </div>
+                  <div className="p-6 md:p-8 flex flex-col flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      {p.name === 'HID-Fi' ? <HidFiLogo size={26} /> : <LxusBrainLogo size={22} />}
+                      <h3 className="text-2xl font-bold text-foreground">{p.name}</h3>
+                    </div>
+                    <p className="text-muted-foreground mb-5">{p.tagline}</p>
+                    <ul className="space-y-2.5 mb-6">
+                      {p.points.map((pt) => (
+                        <li key={pt} className="flex items-center gap-3 text-foreground/80 text-sm">
+                          <span className="w-5 h-5 shrink-0 rounded-full bg-cyan-500/20 flex items-center justify-center">
+                            <Check className="w-3 h-3 text-cyan-400" />
+                          </span>
+                          {pt}
+                        </li>
+                      ))}
+                    </ul>
+                    <span className="mt-auto inline-flex items-center gap-2 text-cyan-400 font-semibold group-hover:gap-3 transition-all">
+                      Explore {p.name} <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </div>
+                </button>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-10 md:mt-14 flex items-center justify-center gap-2 text-muted-foreground/50">
             <Sparkles className="w-4 h-4" />
             <span className="text-sm">More products coming soon</span>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -213,20 +303,20 @@ export function HomePage() {
               About <span className="gradient-text">LxusBrain</span>
             </h2>
             <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-6 md:mb-8">
-              We're a technology company focused on building AI-powered software that helps businesses
-              work smarter. Our solutions are designed to be self-hosted, giving enterprises full
-              control over their data while leveraging cutting-edge artificial intelligence.
+              We're a technology company building software and hardware that help people and businesses
+              work smarter. Our products run on your own machines, so you keep full control of your
+              data, with AI where it does real work.
             </p>
             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mt-8 md:mt-12">
               <div className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-white/[0.02] border border-white/[0.05]">
                 <Zap className="w-6 h-6 md:w-8 md:h-8 text-cyan-400 mx-auto mb-3 md:mb-4" />
-                <h3 className="text-foreground font-semibold mb-2 text-sm md:text-base">AI-First</h3>
-                <p className="text-muted-foreground text-xs md:text-sm">Every product is built with AI at its core</p>
+                <h3 className="text-foreground font-semibold mb-2 text-sm md:text-base">AI Where It Helps</h3>
+                <p className="text-muted-foreground text-xs md:text-sm">AI voices in TermiVoxed; AI agents can drive HID-Fi</p>
               </div>
               <div className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-white/[0.02] border border-white/[0.05]">
                 <Cpu className="w-6 h-6 md:w-8 md:h-8 text-cyan-400 mx-auto mb-3 md:mb-4" />
                 <h3 className="text-foreground font-semibold mb-2 text-sm md:text-base">Self-Hosted</h3>
-                <p className="text-muted-foreground text-xs md:text-sm">Your data stays on your infrastructure</p>
+                <p className="text-muted-foreground text-xs md:text-sm">Your data stays on your own machines</p>
               </div>
               <div className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-white/[0.02] border border-white/[0.05] sm:col-span-2 md:col-span-1">
                 <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-cyan-400 mx-auto mb-3 md:mb-4" />
@@ -266,6 +356,9 @@ export function HomePage() {
               </a>
               <a href="/termivoxed" className="text-muted-foreground hover:text-foreground transition flex items-center gap-1">
                 TermiVoxed <ArrowRight className="w-3 h-3" />
+              </a>
+              <a href="/hid-fi" className="text-muted-foreground hover:text-foreground transition flex items-center gap-1">
+                HID-Fi <ArrowRight className="w-3 h-3" />
               </a>
             </div>
           </div>

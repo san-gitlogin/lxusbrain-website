@@ -525,6 +525,7 @@ export function TermiVoxedPage() {
               <h4 className="text-foreground font-semibold mb-4">Products</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link to="/termivoxed" className="text-muted-foreground hover:text-primary transition">TermiVoxed</Link></li>
+                <li><Link to="/hid-fi" className="text-muted-foreground hover:text-primary transition">HID-Fi</Link></li>
               </ul>
             </div>
             <div>
